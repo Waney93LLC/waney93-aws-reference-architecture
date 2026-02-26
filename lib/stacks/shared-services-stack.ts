@@ -14,7 +14,7 @@ import { SharedServicesBuilder } from '../builders/shared-services-builder';
 export class SharedServicesStack extends cdk.Stack {
 
   /**
-   * SharedServicesStack constructor that orchestrates SharedServicesBuilder
+   * SharedServicesStack constructor that instantiates SharedServicesBuilder
    * @param scope - The construct scope
    * @param id - The stack ID
    * @param props - The stack properties
