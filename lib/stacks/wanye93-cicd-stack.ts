@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct  } from 'constructs';
 import * as pipeline from 'aws-cdk-lib/pipelines';
 import { CodePipeline  } from 'aws-cdk-lib/aws-events-targets';
-import { getConfig } from '../config/environment-config';
+import { getEnvConfig } from '../config/environment-config';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 
 
@@ -28,7 +28,7 @@ export class Wanye93CICDStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
     const stage = scope.node.tryGetContext('stage');
-    const config = getConfig(stage);
+    const config = getEnvConfig(stage);
     if (!config) {
       throw new Error(`No config found for stage: ${stage}`);
     }
