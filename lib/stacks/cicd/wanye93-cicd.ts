@@ -79,5 +79,6 @@ export class Wanye93CICDStack extends cdk.Stack {
       env: env,
     });
     initialWave.addStage(sharedStage);
+    
   }
 }
