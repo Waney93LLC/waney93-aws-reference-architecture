@@ -54,23 +54,23 @@ export class Wanye93CICDStack extends cdk.Stack {
     }
     
 
-    // const pipelineConstruct = new PipelineConstruct(this, 'PipelineConstruct', {
-    //   pipelineId: 'cicd-pipeline',
-    //   pipelineName: pipeline.name,
-    //   repoOwner: pipeline.repository.owner,
-    //   repoName: pipeline.repository.name,
-    //   branch: pipeline.repository.branch,
-    //   codestarConnectionArn: connectionArn,
-    //   synthCommands: ['npm ci', 'npm install -g aws-cdk@latest', 'cdk synth'],
-    // });
+    const pipelineConstruct = new PipelineConstruct(this, 'PipelineConstruct', {
+      pipelineId: 'cicd-pipeline',
+      pipelineName: pipeline.name,
+      repoOwner: pipeline.repository.owner,
+      repoName: pipeline.repository.name,
+      branch: pipeline.repository.branch,
+      codestarConnectionArn: connectionArn,
+      synthCommands: ['npm ci', 'npm install -g aws-cdk@latest', 'cdk synth'],
+    });
 
-    //    const initialWave = pipelineConstruct.pipeline.addWave(stage, {
-    //      pre: [
-    //        new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
-    //          comment:
-    //            'Approve deployment of the first wave.',
-    //        }),
-    //      ],
-    //    });
+       const initialWave = pipelineConstruct.pipeline.addWave(stage, {
+         pre: [
+           new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
+             comment:
+               'Approve deployment of the first wave.',
+           }),
+         ],
+       });
   }
 }
