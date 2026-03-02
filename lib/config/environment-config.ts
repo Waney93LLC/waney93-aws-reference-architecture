@@ -1,6 +1,6 @@
-type Stage = 'dev' | 'test' | 'prod';
+export type Stage = 'dev' | 'test' | 'prod';
 
-interface EnvironmentConfig {
+export interface EnvironmentConfig {
   stage: Stage;
   pipeline: {
     name: string;
