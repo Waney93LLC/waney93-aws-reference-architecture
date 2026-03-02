@@ -11,7 +11,7 @@ export interface EnvironmentConfig {
 }
 
 const REPO = {
-  owner: 'waney93',
+  owner: 'Waney93LLC',
   name: 'waney93-aws-reference-architecture',
 } as const;
 
