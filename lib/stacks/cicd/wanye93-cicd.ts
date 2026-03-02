@@ -6,6 +6,7 @@ import { getEnvConfig } from '../../config/environment';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { CICDStackProps } from './cicd-stack-props';
 import { PipelineConstruct } from '../../constructs/pipeline';
+import { SharedServicesStage } from '../../stages/shared-services';
 
 /**
  * Wanye93CICDStack
@@ -74,5 +75,9 @@ export class Wanye93CICDStack extends cdk.Stack {
         }),
       ],
     });
+    const sharedStage = new SharedServicesStage(this, `${stage}-SharedServices`, {
+      env: env,
+    });
+    initialWave.addStage(sharedStage);
   }
 }

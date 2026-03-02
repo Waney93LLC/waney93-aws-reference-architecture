@@ -8,7 +8,9 @@ import * as cdk from 'aws-cdk-lib';
  *   High-level, user-facing properties for configuring the SharedServices feature.
  *   Keep this small and stable; apply defaults in builders.
  */
-export interface SharedServicesProps {}
+export interface SharedServicesProps {
+  ecr?: ECR_CONFIG;
+}
 
 /**
  * SharedServicesConstructProps
@@ -26,7 +28,18 @@ export interface SharedServicesConstructProps {}
  *   Constructor props for SharedServicesBuilder.
  *   Often you can alias this to SharedServicesProps.
  */
-export interface SharedServicesBuilderProps extends SharedServicesProps {}
+export interface SharedServicesBuilderProps extends SharedServicesProps {
+ 
+}
+
+export type ECR_CONFIG = {
+    REPO_NAME: string;
+    ImageScanOnPush: boolean;
+    ImageTagMutability: cdk.aws_ecr.TagMutability;
+    Encryption: cdk.aws_ecr.RepositoryEncryption;
+    LifecycleMaxImageAgeDays: number;
+    RemovalPolicy: cdk.RemovalPolicy;
+}
 
 /**
  * SharedServicesStackProps
@@ -34,7 +47,7 @@ export interface SharedServicesBuilderProps extends SharedServicesProps {}
  * Purpose:
  *   Strongly-typed Stack props for SharedServicesStack.
  */
-export interface SharedServicesStackProps extends cdk.StackProps, SharedServicesProps {}
+export interface SharedServicesStackProps extends cdk.StackProps {}
 
 /**
  * SharedServicesStageProps

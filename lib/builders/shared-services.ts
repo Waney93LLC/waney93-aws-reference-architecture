@@ -5,6 +5,7 @@ import {
   SharedServicesConstructProps,
 } from '../interfaces/shared-services';
 import { SharedServicesConstruct } from '../constructs/shared-services';
+import { EcrConstruct } from '../constructs/ecr';
 
 /**
  * SharedServicesBuilder
@@ -21,6 +22,7 @@ export class SharedServicesBuilder {
   private readonly scope: Construct;
   private readonly idPrefix: string;
   private readonly props: Required<SharedServicesBuilderProps>;
+  private repo?: EcrConstruct;
 
   /**
    * SharedServicesBuilder constructor creates a builder that orchestrates
@@ -41,6 +43,22 @@ export class SharedServicesBuilder {
     this.props = {
       ...props,
     } as Required<SharedServicesBuilderProps>;
+  }
+
+  public withEcr(): this {
+    if (!this.props.ecr) {
+      throw new Error('ECR configuration is required to create ECR repository');
+    }
+    this.repo = new EcrConstruct(this.scope, 'EcrBuilder', {
+      repositoryName: this.props.ecr.REPO_NAME,
+      imageScanOnPush: this.props.ecr.ImageScanOnPush,
+      imageTagMutability: this.props.ecr.ImageTagMutability,
+      encryption: this.props.ecr.Encryption,
+      lifecycleMaxImageAgeDays: this.props.ecr.LifecycleMaxImageAgeDays,
+      removalPolicy: this.props.ecr.RemovalPolicy,
+    });
+
+    return this;
   }
 
   /**
