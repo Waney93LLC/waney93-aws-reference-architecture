@@ -61,7 +61,7 @@ export class Wanye93CICDStack extends cdk.Stack {
       repoName: pipeline.repository.name,
       branch: pipeline.repository.branch,
       codestarConnectionArn: connectionArn,
-      synthCommands: ['npm ci', 'npm install -g aws-cdk@latest', 'cdk synth'],
+      synthCommands: ['npm ci', 'npm install -g aws-cdk@latest', `cdk synth -c stage=${stage}`],
     });
 
        const initialWave = pipelineConstruct.pipeline.addWave(stage, {

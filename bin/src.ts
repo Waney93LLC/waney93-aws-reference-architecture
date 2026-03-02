@@ -8,6 +8,6 @@ new Wanye93CICDStack(app, 'Wanye93CICDStack', {
   stage: stage,
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
+    region: process.env.CDK_DEFAULT_REGION,  
   },
 });
