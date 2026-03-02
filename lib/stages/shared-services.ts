@@ -2,7 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { SharedServicesStageProps } from '../interfaces/shared-services';
-import { SharedServicesStack } from '../stacks/shared-services-stack';
+import { SharedServicesStack } from '../stacks/shared-services';
 
 /**
  * SharedServicesStage

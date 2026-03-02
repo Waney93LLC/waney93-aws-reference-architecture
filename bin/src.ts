@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib/core';
-import { Wanye93CICDStack } from '../lib/stacks/cicd/wanye93-cicd-stack';
+import { Wanye93CICDStack } from '../lib/stacks/cicd/wanye93-cicd';
 
 const app = new cdk.App();
 const stage = app.node.tryGetContext('stage');

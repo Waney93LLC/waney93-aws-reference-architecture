@@ -2,7 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AppLayerStackProps } from '../interfaces/app-layer';
-import { AppLayerBuilder } from '../builders/app-layer-builder';
+import { AppLayerBuilder } from '../builders/app-layer';
 
 /**
  * AppLayerStack

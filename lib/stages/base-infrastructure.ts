@@ -2,7 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { BaseInfrastructureStageProps } from '../interfaces/base-infrastructure';
-import { BaseInfrastructureStack } from '../stacks/base-infrastructure-stack';
+import { BaseInfrastructureStack } from '../stacks/base-infrastructure';
 
 /**
  * BaseInfrastructureStage

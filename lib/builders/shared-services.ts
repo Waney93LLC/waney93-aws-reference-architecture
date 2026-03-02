@@ -4,7 +4,7 @@ import {
   SharedServicesBuilderProps,
   SharedServicesConstructProps,
 } from '../interfaces/shared-services';
-import { SharedServicesConstruct } from '../constructs/shared-services-construct';
+import { SharedServicesConstruct } from '../constructs/shared-services';
 
 /**
  * SharedServicesBuilder

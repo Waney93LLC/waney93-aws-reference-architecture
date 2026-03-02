@@ -2,10 +2,10 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as pipeline from 'aws-cdk-lib/pipelines';
 import { CodePipeline } from 'aws-cdk-lib/aws-events-targets';
-import { getEnvConfig } from '../../config/environment-config';
+import { getEnvConfig } from '../../config/environment';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { CICDStackProps } from './cicd-stack-props';
-import { PipelineConstruct } from '../../constructs/pipeline-construct';
+import { PipelineConstruct } from '../../constructs/pipeline';
 
 /**
  * Wanye93CICDStack
@@ -52,7 +52,6 @@ export class Wanye93CICDStack extends cdk.Stack {
         `Incomplete repository information found for stage: ${stage}`,
       );
     }
-    
 
     const pipelineConstruct = new PipelineConstruct(this, 'PipelineConstruct', {
       pipelineId: 'cicd-pipeline',
@@ -61,16 +60,19 @@ export class Wanye93CICDStack extends cdk.Stack {
       repoName: pipeline.repository.name,
       branch: pipeline.repository.branch,
       codestarConnectionArn: connectionArn,
-      synthCommands: ['npm ci', 'npm install -g aws-cdk@latest', `cdk synth -c stage=${stage}`],
+      synthCommands: [
+        'npm ci',
+        'npm install -g aws-cdk@latest',
+        `cdk synth -c stage=${stage}`,
+      ],
     });
 
-       const initialWave = pipelineConstruct.pipeline.addWave(stage, {
-         pre: [
-           new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
-             comment:
-               'Approve deployment of the first wave.',
-           }),
-         ],
-       });
+    const initialWave = pipelineConstruct.pipeline.addWave(stage, {
+      pre: [
+        new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
+          comment: 'Approve deployment of the first wave.',
+        }),
+      ],
+    });
   }
 }
