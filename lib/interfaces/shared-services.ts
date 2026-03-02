@@ -10,6 +10,7 @@ import * as cdk from 'aws-cdk-lib';
  */
 export interface SharedServicesProps {
   ecr?: ECR_CONFIG;
+  oidc?: OIDC_CONFIG;
 }
 
 /**
@@ -39,6 +40,26 @@ export type ECR_CONFIG = {
     Encryption: cdk.aws_ecr.RepositoryEncryption;
     LifecycleMaxImageAgeDays: number;
     RemovalPolicy: cdk.RemovalPolicy;
+}
+ 
+export type OIDC_CONFIG = {
+  applicationRepository: {
+    owner: string;
+    name: string;
+    branch: string;
+  };
+  provider: {
+    name: string;     
+    url: string;
+    clientIds: string[];
+    thumbprints: string[];
+}
+  ciRole: {
+    name: string;
+    description: string;
+    stringEqualityConditions: Record<string, string>;
+    stringLikeConditions: Record<string, string>; 
+  };
 }
 
 /**
