@@ -76,6 +76,7 @@ export class Waney93CICDStack extends cdk.Stack {
     });
     const sharedStage = new SharedServicesStage(this, `${stage}-SharedServices`, {
       env: env,
+      pipelineName: pipeline.name,
     });
     initialWave.addStage(sharedStage);
     

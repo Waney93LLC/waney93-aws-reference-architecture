@@ -14,6 +14,8 @@ import { Stage } from '../config/environment';
 export interface SharedServicesProps {
   ecr?: ECR_CONFIG;
   oidc?: OIDC_CONFIG;
+  migrationOps?: MIGRATION_OPS_CONFIG;
+  
 }
 
 /**
@@ -65,13 +67,30 @@ export type OIDC_CONFIG = {
   };
 }
 
+export type MIGRATION_OPS_CONFIG = {
+  automationRunbookName: string;
+  runCommandDocumentName: string;
+  target:{
+    instance:{
+      tagKey: string;
+      tagValue: string;
+    },
+    stack:{
+      name: string;
+    }
+  }
+  
+};
+
 /**
  * SharedServicesStackProps
  *
  * Purpose:
  *   Strongly-typed Stack props for SharedServicesStack.
  */
-export interface SharedServicesStackProps extends cdk.StackProps {}
+export interface SharedServicesStackProps extends cdk.StackProps {
+  pipelineName?: string;
+}
 
 /**
  * SharedServicesStageProps
@@ -79,7 +98,9 @@ export interface SharedServicesStackProps extends cdk.StackProps {}
  * Purpose:
  *   Strongly-typed Stage props for SharedServicesStage.
  */
-export interface SharedServicesStageProps extends cdk.StageProps, SharedServicesProps {}
+export interface SharedServicesStageProps extends cdk.StageProps, SharedServicesProps {
+  pipelineName?: string;
+}
 
 
 export interface EventRoute {
@@ -110,4 +131,8 @@ export interface EventRouterProps {
 export interface Waney93CicdObservabilityStackProps extends cdk.StackProps {
   stage: Stage;  
   env:cdk.Environment;
+}
+
+export interface OpsRunbookConstructProps {
+  migrationOps?: MIGRATION_OPS_CONFIG;
 }

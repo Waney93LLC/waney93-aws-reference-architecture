@@ -11,6 +11,7 @@ import { SharedServicesConstruct } from '../constructs/shared-services';
 import { EcrConstruct } from '../constructs/ecr';
 import { OidcCiRoleConstruct } from '../constructs/odic-ci-role';
 import { EventRouter } from '../constructs/event-router';
+import { OpsRunbookConstruct } from '../constructs/ops-runbook';
 
 /**
  * SharedServicesBuilder
@@ -152,8 +153,29 @@ export class SharedServicesBuilder {
     return this;
   }
 
+  /**
+   * Create observability resources and integrate with event router.
+   * @param routerProps
+   * @returns this
+   */
   public withObservability(routerProps: EventRouterProps): this {
     new EventRouter(this.scope, `${this.idPrefix}-Observability`, routerProps);
+    return this;
+  }
+
+  /**
+   * Add Ops Runbook construct to run SSM Automation when the specified stack is created.
+   * @returns this
+   */
+  public withMigrationBootstrap(): this {
+    if (!this.props.migrationOps) {
+      throw new Error(
+        'Migration Ops configuration is required to create Ops Runbook',
+      );
+    }
+    new OpsRunbookConstruct(this.scope, 'MigrationBootstrapRunbook', {
+      migrationOps: this.props.migrationOps,
+    });
     return this;
   }
 
