@@ -3,7 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { CognitoSecretsConstructProps } from '../../../interfaces/platforms/cognito';
+import { CognitoSecretsConstructProps } from '../../interfaces/cognito';
 
 export class CognitoSecretsConstruct extends Construct {
   public readonly secret: secretsmanager.Secret;

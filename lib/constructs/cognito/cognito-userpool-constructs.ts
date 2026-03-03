@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import { CognitoUserPoolConstructProps } from '../../../interfaces/platforms/cognito';
+import { CognitoUserPoolConstructProps } from '../../interfaces/cognito';
 
 export class CognitoUserPoolConstruct extends Construct {
   public readonly userPool: cognito.UserPool;
@@ -15,7 +15,7 @@ export class CognitoUserPoolConstruct extends Construct {
 
     this.userPool = new cognito.UserPool(this, 'UserPool', {
       userPoolName: `${props.appName}-user-pool`,
-      selfSignUpEnabled: props.selfSignUpEnabled,
+      selfSignUpEnabled: props.userPoolSelfSignUpEnabled,
       signInAliases: {
         email: true,
         username: props.allowUsernameSignIn,
