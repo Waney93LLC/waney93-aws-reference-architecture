@@ -2,6 +2,7 @@ export type Stage = 'dev' | 'test' | 'prod';
 
 export interface EnvironmentConfig {
   stage: Stage;
+  cognito?: { acmCertificateArnParameter?: string };
   pipeline: {
     name: string;
     description: string;
@@ -21,6 +22,7 @@ const REPO = {
 // single per account (or shared) parameter
 const CODESTAR_CONNECTION_ARN_PARAM = '/waney93/shared/codestar/connection-arn';
 const NOTIFICATIONS_EMAIL_PARAM = '/waney93/shared/notifications/email';
+const ACM_CERTIFICATE_ARN_PARAM = '/waney93/shared/cognito/cert-arn';
 
 const STAGE_OVERRIDES: Record<Stage, { branch: string }> = {
   dev: { branch: 'dev' },
@@ -35,6 +37,7 @@ export function getEnvConfig(stage: Stage): EnvironmentConfig {
 
   return {
     stage,
+    cognito: { acmCertificateArnParameter: ACM_CERTIFICATE_ARN_PARAM },
     pipeline: {
       name: `Waney93${pascalStage}Pipeline`,
       description: `Pipeline for the Waney93 ${stage} stage`,
