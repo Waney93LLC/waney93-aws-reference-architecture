@@ -3,13 +3,14 @@ import { Construct } from 'constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as cdk from 'aws-cdk-lib';
 import {
+  EventRouterProps,
   SharedServicesBuilderProps,
   SharedServicesConstructProps,
 } from '../interfaces/shared-services';
 import { SharedServicesConstruct } from '../constructs/shared-services';
 import { EcrConstruct } from '../constructs/ecr';
 import { OidcCiRoleConstruct } from '../constructs/odic-ci-role';
-import { getEnvConfig } from '../config/environment';
+import { EventRouter } from '../constructs/event-router';
 
 /**
  * SharedServicesBuilder
@@ -117,37 +118,42 @@ export class SharedServicesBuilder {
         'CI GitHub ECR roles must be defined before adding CI GitHub Role',
       );
     }
-    if(!this.props.ecr) {
+    if (!this.props.ecr) {
       throw new Error(
         'ECR configuration must be provided before adding CI GitHub Role',
       );
     }
-    if(!this.props.oidc) {
+    if (!this.props.oidc) {
       throw new Error(
         'OIDC configuration must be provided before adding CI GitHub Role',
       );
     }
 
-      new OidcCiRoleConstruct(this.scope, 'GithubCiIdentity', {
-        repoOrg:this.props.oidc.applicationRepository.owner,
-        repoName: this.props.oidc.applicationRepository.name,
-        provider: {
-          name: this.props.oidc.provider.name,
-          url: this.props.oidc.provider.url,
-          clientIds: this.props.oidc.provider.clientIds,
-          thumbprints: this.props.oidc.provider.thumbprints,
-        },
-        ciRole: {
-          roleName: this.props.oidc.ciRole.name,
-          description: this.props.oidc.ciRole.description,
-          stringEquals:this.props.oidc.ciRole.stringEqualityConditions,
+    new OidcCiRoleConstruct(this.scope, 'GithubCiIdentity', {
+      repoOrg: this.props.oidc.applicationRepository.owner,
+      repoName: this.props.oidc.applicationRepository.name,
+      provider: {
+        name: this.props.oidc.provider.name,
+        url: this.props.oidc.provider.url,
+        clientIds: this.props.oidc.provider.clientIds,
+        thumbprints: this.props.oidc.provider.thumbprints,
+      },
+      ciRole: {
+        roleName: this.props.oidc.ciRole.name,
+        description: this.props.oidc.ciRole.description,
+        stringEquals: this.props.oidc.ciRole.stringEqualityConditions,
 
-          stringLike: this.props.oidc.ciRole.stringLikeConditions,
-          maxSessionDuration: cdk.Duration.hours(1),
-        },
-        ecr: { repo: this.repo.repository },
-        roles: this.ciGithubEcrRoles,
-      });
+        stringLike: this.props.oidc.ciRole.stringLikeConditions,
+        maxSessionDuration: cdk.Duration.hours(1),
+      },
+      ecr: { repo: this.repo.repository },
+      roles: this.ciGithubEcrRoles,
+    });
+    return this;
+  }
+
+  public withObservability(routerProps: EventRouterProps): this {
+    new EventRouter(this.scope, `${this.idPrefix}-Observability`, routerProps);
     return this;
   }
 

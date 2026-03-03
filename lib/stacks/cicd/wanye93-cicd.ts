@@ -1,7 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as pipeline from 'aws-cdk-lib/pipelines';
-import { CodePipeline } from 'aws-cdk-lib/aws-events-targets';
 import { getEnvConfig } from '../../config/environment';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { CICDStackProps } from './cicd-stack-props';

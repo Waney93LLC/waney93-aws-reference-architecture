@@ -7,6 +7,9 @@ export interface EnvironmentConfig {
     description: string;
     repository: { owner: string; name: string; branch: string };
     codestar: { connectionArnParameter: string };
+    notifications?: {
+      emailParameter: string;
+    };
   };
 }
 
@@ -17,6 +20,7 @@ const REPO = {
 
 // single per account (or shared) parameter
 const CODESTAR_CONNECTION_ARN_PARAM = '/waney93/shared/codestar/connection-arn';
+const NOTIFICATIONS_EMAIL_PARAM = '/waney93/shared/notifications/email';
 
 const STAGE_OVERRIDES: Record<Stage, { branch: string }> = {
   dev: { branch: 'dev' },
@@ -36,6 +40,7 @@ export function getEnvConfig(stage: Stage): EnvironmentConfig {
       description: `Pipeline for the Wanye93 ${stage} stage`,
       repository: { ...REPO, branch },
       codestar: { connectionArnParameter: CODESTAR_CONNECTION_ARN_PARAM },
+      notifications: { emailParameter: NOTIFICATIONS_EMAIL_PARAM },
     },
   };
 }
