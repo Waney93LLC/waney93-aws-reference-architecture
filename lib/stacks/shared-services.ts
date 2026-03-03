@@ -2,6 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {
+  COGNITO_CONFIG,
   ECR_CONFIG,
   MIGRATION_OPS_CONFIG,
   OIDC_CONFIG,
@@ -31,17 +32,23 @@ export class SharedServicesStack extends cdk.Stack {
     if (props.pipelineName) {
       migrationOpsConfig = this.getMigrationOpsConfig(props.pipelineName);
     }
+    let cognitoConfig: COGNITO_CONFIG | undefined;
+    if (props.acmCertificateArn) {
+      cognitoConfig = this.getCognitoConfig(props.acmCertificateArn);
+    }
 
     new SharedServicesBuilder(this, 'SharedServicesBuilder', {
       ...props,
       ecr: ecrConfig,
       oidc: oidcConfig,
       migrationOps: migrationOpsConfig,
+      cognito: cognitoConfig,
     })
       .withEcr()
       .withCiEcrPushRole()
       .withGitHubOidc()
       .withMigrationBootstrap()
+      .withCognito()
       .outputs();
     // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
@@ -89,7 +96,7 @@ export class SharedServicesStack extends cdk.Stack {
     };
   }
 
-  getMigrationOpsConfig(pipelineName:string): MIGRATION_OPS_CONFIG {
+  getMigrationOpsConfig(pipelineName: string): MIGRATION_OPS_CONFIG {
     return {
       automationRunbookName: 'RunMigrationBootstrap',
       runCommandDocumentName: 'BastionMigrationDocument',
@@ -102,6 +109,22 @@ export class SharedServicesStack extends cdk.Stack {
           name: pipelineName,
         },
       },
+    };
+  }
+
+  getCognitoConfig(acmCertificateArn:string): COGNITO_CONFIG {
+    return {
+      app: {
+        name: 'SharedServicesCognitoApp',
+        callbackUrls: ['https://example.com/callback'],
+        logoutUrls: ['https://example.com/logout'],
+        secret: { name: 'SharedServicesCognitoAppSecret' },
+      },
+      customDomainName: 'auth.waney93.com',
+      acmCertificateArn,
+      userPoolSelfSignUpEnabled: true,
+      allowUsernameSignIn: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     };
   }
 }

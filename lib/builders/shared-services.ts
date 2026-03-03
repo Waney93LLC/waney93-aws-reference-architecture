@@ -11,6 +11,7 @@ import { EcrConstruct } from '../constructs/ecr';
 import { OidcCiRoleConstruct } from '../constructs/odic-ci-role';
 import { EventRouter } from '../constructs/event-router';
 import { OpsRunbookConstruct } from '../constructs/ops-runbook';
+import { CognitoConstruct } from '../constructs/cognito/cognito-construct';
 
 /**
  * SharedServicesBuilder
@@ -67,7 +68,6 @@ export class SharedServicesBuilder {
       lifecycleMaxImageAgeDays: this.props.ecr.LifecycleMaxImageAgeDays,
       removalPolicy: this.props.ecr.RemovalPolicy,
     });
-
     return this;
   }
 
@@ -178,6 +178,19 @@ export class SharedServicesBuilder {
     return this;
   }
 
+  public withCognito(): this {
+    if (!this.props.cognito) {
+      throw new Error(
+        'Cognito configuration is required to create Cognito resources',
+      );
+    }
+    new CognitoConstruct(this.scope, 'CognitoConstruct', {
+      idPrefix: 'SharedServicesCognito',
+      cognito: this.props.cognito,
+    });
+
+    return this;
+  }
 
   /**
    * Optional: define CDK outputs in one place.

@@ -15,6 +15,7 @@ export interface SharedServicesProps {
   ecr?: ECR_CONFIG;
   oidc?: OIDC_CONFIG;
   migrationOps?: MIGRATION_OPS_CONFIG;
+  cognito?: COGNITO_CONFIG;
   
 }
 
@@ -82,6 +83,20 @@ export type MIGRATION_OPS_CONFIG = {
   
 };
 
+export type COGNITO_CONFIG = {
+  app: {
+    name: string;
+    callbackUrls: string[];
+    logoutUrls: string[];
+    secret: { name: string };
+  };
+  customDomainName: string;
+  acmCertificateArn: string;
+  userPoolSelfSignUpEnabled: boolean;
+  allowUsernameSignIn: boolean;
+  removalPolicy: cdk.RemovalPolicy;
+};
+
 /**
  * SharedServicesStackProps
  *
@@ -90,6 +105,7 @@ export type MIGRATION_OPS_CONFIG = {
  */
 export interface SharedServicesStackProps extends cdk.StackProps {
   pipelineName?: string;
+  acmCertificateArn: string;
 }
 
 /**
