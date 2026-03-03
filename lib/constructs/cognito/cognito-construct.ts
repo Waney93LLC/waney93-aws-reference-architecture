@@ -42,13 +42,19 @@ export class CognitoConstruct extends Construct {
     if (!cognito) {
       throw new Error('Cognito configuration is required to create User Pool');
     }
+    const {
+      app,
+      removalPolicy,
+      userPoolSelfSignUpEnabled,
+      allowUsernameSignIn,
+    } = cognito;
     return new CognitoUserPoolConstruct(this, `${idPrefix}UserPool`, {
-      appName: cognito.app.name,
-      removalPolicy: cognito.removalPolicy,
-      selfSignUpEnabled: cognito.userPoolSelfSignUpEnabled,
-      allowUsernameSignIn: cognito.allowUsernameSignIn,
-      callbackUrls: cognito.app.callbackUrls,
-      logoutUrls: cognito.app.logoutUrls,
+      appName: app.name,
+      removalPolicy: removalPolicy,
+      userPoolSelfSignUpEnabled: userPoolSelfSignUpEnabled,
+      allowUsernameSignIn: allowUsernameSignIn,
+      callbackUrls: app.callbackUrls,
+      logoutUrls: app.logoutUrls,
     });
   }
 
@@ -88,8 +94,8 @@ export class CognitoConstruct extends Construct {
 
   /**
    * Adds secrets to store Cognito User Pool and User Pool Client IDs, and integrates with the custom domain.
-   * @param userPool 
-   * @returns 
+   * @param userPool
+   * @returns
    */
   public createSecrets(userPool: CognitoUserPoolConstruct) {
     const { idPrefix, cognito } = this.props;
