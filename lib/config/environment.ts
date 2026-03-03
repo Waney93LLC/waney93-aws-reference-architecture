@@ -36,8 +36,8 @@ export function getEnvConfig(stage: Stage): EnvironmentConfig {
   return {
     stage,
     pipeline: {
-      name: `Wanye93${pascalStage}Pipeline`,
-      description: `Pipeline for the Wanye93 ${stage} stage`,
+      name: `Waney93${pascalStage}Pipeline`,
+      description: `Pipeline for the Waney93 ${stage} stage`,
       repository: { ...REPO, branch },
       codestar: { connectionArnParameter: CODESTAR_CONNECTION_ARN_PARAM },
       notifications: { emailParameter: NOTIFICATIONS_EMAIL_PARAM },

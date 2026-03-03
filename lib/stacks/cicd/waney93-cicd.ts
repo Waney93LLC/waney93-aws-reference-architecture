@@ -8,14 +8,14 @@ import { PipelineConstruct } from '../../constructs/pipeline';
 import { SharedServicesStage } from '../../stages/shared-services';
 
 /**
- * Wanye93CICDStack
+ * Waney93CICDStack
  *
  * Purpose:
- *   Stack entry point for the Wanye93 CI/CD pipeline.
+ *   Stack entry point for the Waney93 CI/CD pipeline.
  */
-export class Wanye93CICDStack extends cdk.Stack {
+export class Waney93CICDStack extends cdk.Stack {
   /**
-   * Wanye93CICDStack constructor that instantiates the pipeline construct.
+   * Waney93CICDStack constructor that instantiates the pipeline construct.
    * Note: the pipeline construct requires the followings:
    * - A pipeline name
    * - A repo description (repo owner, repo name, and branch)
