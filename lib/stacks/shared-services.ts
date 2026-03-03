@@ -26,6 +26,7 @@ export class SharedServicesStack extends cdk.Stack {
 
     new SharedServicesBuilder(this, 'SharedServicesBuilder', { ...props, ecr: ecr_config, oidc: oidc_config })
       .withEcr()
+      .withCiEcrPushRole()
       .withGitHubOidc()
       .build()
       .outputs();
