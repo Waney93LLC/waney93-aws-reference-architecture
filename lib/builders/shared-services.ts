@@ -7,7 +7,6 @@ import {
   SharedServicesBuilderProps,
   SharedServicesConstructProps,
 } from '../interfaces/shared-services';
-import { SharedServicesConstruct } from '../constructs/shared-services';
 import { EcrConstruct } from '../constructs/ecr';
 import { OidcCiRoleConstruct } from '../constructs/odic-ci-role';
 import { EventRouter } from '../constructs/event-router';
@@ -179,20 +178,6 @@ export class SharedServicesBuilder {
     return this;
   }
 
-  /**
-   * Build the feature resources (construct composition).
-   */
-  public build(): this {
-    const constructProps = {} as SharedServicesConstructProps; // TODO map/normalize from this.props
-
-    new SharedServicesConstruct(
-      this.scope,
-      `${this.idPrefix}-SharedServicesConstruct`,
-      constructProps,
-    );
-
-    return this;
-  }
 
   /**
    * Optional: define CDK outputs in one place.
