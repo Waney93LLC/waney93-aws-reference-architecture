@@ -51,7 +51,10 @@ export class Waney93CicdObservabilityStack extends cdk.Stack {
           eventPattern: {
             source: ['aws.codepipeline'],
             detailType: ['CodePipeline Pipeline Execution State Change'],
-            detail: { pipeline: [config.pipeline.name] },
+            detail: {
+              pipeline: [config.pipeline.name],
+              state: ['FAILED', 'CANCELED', 'SUPERSEDED'],
+            },
           },
           targets: [new targets.SnsTopic(topic)],
         },
