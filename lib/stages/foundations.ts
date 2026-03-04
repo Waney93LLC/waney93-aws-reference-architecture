@@ -36,6 +36,6 @@ export class FoundationsStage extends cdk.Stage {
         ...props,
       },
     );
-    sharedServicesStack.addDependency(infrastructureStack);
+    infrastructureStack.addDependency(sharedServicesStack);
   }
 }
