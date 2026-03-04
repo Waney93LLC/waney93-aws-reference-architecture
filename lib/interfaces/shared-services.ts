@@ -105,7 +105,7 @@ export type COGNITO_CONFIG = {
  */
 export interface SharedServicesStackProps extends cdk.StackProps {
   pipelineName?: string;
-  acmCertificateArn?: string;
+  acmCertificateArnName?: string;
 }
 
 /**
@@ -116,7 +116,7 @@ export interface SharedServicesStackProps extends cdk.StackProps {
  */
 export interface SharedServicesStageProps extends cdk.StageProps, SharedServicesProps {
   pipelineName?: string;
-  acmCertificateArn?: string;
+  acmCertificateArnName?: string;
 }
 
 

@@ -39,10 +39,6 @@ export class Waney93CICDStack extends cdk.Stack {
     if (!connectionArn) {
       throw new Error(`No CodestarConnection ARN found for stage: ${stage}`);
     }
-    const acmCertificateArn = ssm.StringParameter.valueForStringParameter(
-      this,
-      config.cognito?.acmCertificateArnParameter || '',
-    );
     const { pipeline } = config;
     if (!pipeline.name) {
       throw new Error(`No pipeline name found for stage: ${stage}`);
@@ -78,11 +74,15 @@ export class Waney93CICDStack extends cdk.Stack {
         }),
       ],
     });
-    const sharedStage = new SharedServicesStage(this, `${stage}-SharedServices`, {
-      env: env,
-      pipelineName: pipeline.name,
-      acmCertificateArn,
-    });
+    const sharedStage = new SharedServicesStage(
+      this,
+      `${stage}-SharedServices`,
+      {
+        env: env,
+        pipelineName: pipeline.name,
+        acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
+      },
+    );
     initialWave.addStage(sharedStage);
     
   }
