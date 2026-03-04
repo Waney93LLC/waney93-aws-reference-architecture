@@ -6,6 +6,7 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { CICDStackProps } from './cicd-stack-props';
 import { PipelineConstruct } from '../../constructs/pipeline';
 import { SharedServicesStage } from '../../stages/shared-services';
+import { BaseInfrastructureStage } from '../../stages/base-infrastructure';
 
 /**
  * Waney93CICDStack
@@ -67,7 +68,24 @@ export class Waney93CICDStack extends cdk.Stack {
       ],
     });
 
-    const initialWave = pipelineConstruct.pipeline.addWave(stage, {
+    // The Foundations wave bootstraps the AWS environment for a new application
+    // or account onboarding. This wave is typically executed only once per
+    // environment and provisions shared platform services that other stages
+    // depend on.
+    //
+    // Examples of foundational services include:
+    // - Identity and authentication (Cognito)
+    // - Container registry (ECR)
+    // - CI/CD identity federation (GitHub OIDC)
+    // - Other shared account-level services
+    //
+    // It may also provision baseline infrastructure required by the application
+    // environment such as networking (VPC), database clusters, a database
+    // management bastion host, and optional migration tooling (e.g., AWS DMS).
+    //
+    // Because these resources establish long-lived infrastructure for the
+    // environment, a manual approval step is required before execution.
+    const foundationsWave = pipelineConstruct.pipeline.addWave(stage, {
       pre: [
         new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
           comment: 'Approve deployment of the first wave.',
@@ -83,7 +101,14 @@ export class Waney93CICDStack extends cdk.Stack {
         acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
       },
     );
-    initialWave.addStage(sharedStage);
-    
+    const infrastructureStage = new BaseInfrastructureStage(
+      this,
+      `${stage}-Infrastructure`,
+      {
+        env: env,
+      },
+    );
+    foundationsWave.addStage(sharedStage);
+    foundationsWave.addStage(infrastructureStage);
   }
 }

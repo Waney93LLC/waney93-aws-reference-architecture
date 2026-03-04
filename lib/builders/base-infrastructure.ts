@@ -35,18 +35,7 @@ export class BaseInfrastructureBuilder {
       ...props,
     } as Required<BaseInfrastructureBuilderProps>;
   }
-
-  /**
-   * Build the feature resources (construct composition).
-   */
-  public build(): this {
-    const constructProps = {} as BaseInfrastructureConstructProps; // TODO map/normalize from this.props
-
-    new BaseInfrastructureConstruct(this.scope, `${this.idPrefix}-BaseInfrastructureConstruct`, constructProps);
-
-    return this;
-  }
-
+  
   /**
    * Optional: define CDK outputs in one place.
    */
