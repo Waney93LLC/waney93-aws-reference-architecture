@@ -112,9 +112,9 @@ export interface SharedServicesStackProps extends cdk.StackProps {
  * SharedServicesStageProps
  *
  * Purpose:
- *   Strongly-typed Stage props for SharedServicesStage.
+ *   Strongly-typed Stage props for FoundationsStage.
  */
-export interface SharedServicesStageProps extends cdk.StageProps, SharedServicesProps {
+export interface FoundationStageProps extends cdk.StageProps, SharedServicesProps {
   pipelineName?: string;
   acmCertificateArnName?: string;
 }

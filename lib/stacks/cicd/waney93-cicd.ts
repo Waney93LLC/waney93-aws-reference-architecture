@@ -5,8 +5,7 @@ import { getEnvConfig } from '../../config/environment';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { CICDStackProps } from './cicd-stack-props';
 import { PipelineConstruct } from '../../constructs/pipeline';
-import { SharedServicesStage } from '../../stages/shared-services';
-import { BaseInfrastructureStage } from '../../stages/base-infrastructure';
+import { FoundationsStage } from '../../stages/foundations';
 
 /**
  * Waney93CICDStack
@@ -92,23 +91,14 @@ export class Waney93CICDStack extends cdk.Stack {
         }),
       ],
     });
-    const sharedStage = new SharedServicesStage(
-      this,
-      `${stage}-SharedServices`,
-      {
-        env: env,
-        pipelineName: pipeline.name,
-        acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
-      },
-    );
-    const infrastructureStage = new BaseInfrastructureStage(
-      this,
-      `${stage}-Infrastructure`,
-      {
-        env: env,
-      },
-    );
+    const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
+      env: env,
+      pipelineName: pipeline.name,
+      acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
+    });
+
+    
     foundationsWave.addStage(sharedStage);
-    foundationsWave.addStage(infrastructureStage);
+
   }
 }
