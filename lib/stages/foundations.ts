@@ -30,12 +30,20 @@ export class FoundationsStage extends cdk.Stage {
         ...props,
       },
     );
+    cdk.Tags.of(sharedServicesStack).add(
+      'ManagedByPipeline',
+      'App-CdkPipeline',
+    );
     const infrastructureStack = new BaseInfrastructureStack(
       this,
       'InfrastructureStack',
       {
         description: 'Infrastructure stack for foundational resources (e.g., VPC, RDS, S3)',
       },
+    );
+    cdk.Tags.of(infrastructureStack).add(
+      'ManagedByPipeline',
+      'App-CdkPipeline',
     );
     infrastructureStack.addDependency(sharedServicesStack);
   }
