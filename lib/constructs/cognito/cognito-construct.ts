@@ -71,14 +71,12 @@ export class CognitoConstruct extends Construct {
       `${idPrefix}DomainCert`,
       acmCertificateArn,
     );
-    const domain = userPool.userPool.addDomain('UserPoolDomain', {
+    userPool.userPool.addDomain('UserPoolDomain', {
       customDomain: {
         domainName: customDomainName,
         certificate: domainCert,
       },
     });
-    domain.node.addDependency(userPool.userPool);
-    domain.node.addDependency(userPool.client);
     return domainCert;
   }
 
