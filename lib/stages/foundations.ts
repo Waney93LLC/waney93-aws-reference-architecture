@@ -41,6 +41,7 @@ export class FoundationsStage extends cdk.Stage {
         description: 'Infrastructure stack for foundational resources (e.g., VPC, RDS, S3)',
       },
     );
+    
     cdk.Tags.of(infrastructureStack).add(
       'ManagedByPipeline',
       'App-CdkPipeline',
