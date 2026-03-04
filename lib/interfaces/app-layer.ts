@@ -2,44 +2,44 @@
 import * as cdk from 'aws-cdk-lib';
 
 /**
- * AppLayerProps
+ * AppProps
  *
  * Purpose:
- *   High-level, user-facing properties for configuring the AppLayer feature.
+ *   High-level, user-facing properties for configuring the App feature.
  *   Keep this small and stable; apply defaults in builders.
  */
-export interface AppLayerProps {}
+export interface AppProps {}
 
 /**
- * AppLayerConstructProps
+ * AppConstructProps
  *
  * Purpose:
- *   Properties required by AppLayerConstruct. Typically a normalized subset
- *   of AppLayerProps.
+ *   Properties required by AppConstruct. Typically a normalized subset
+ *   of AppProps.
  */
-export interface AppLayerConstructProps {}
+export interface AppConstructProps {}
 
 /**
- * AppLayerBuilderProps
+ * AppBuilderProps
  *
  * Purpose:
- *   Constructor props for AppLayerBuilder.
- *   Often you can alias this to AppLayerProps.
+ *   Constructor props for AppBuilder.
+ *   Often you can alias this to AppProps.
  */
-export interface AppLayerBuilderProps extends AppLayerProps {}
+export interface AppBuilderProps extends AppProps {}
 
 /**
- * AppLayerStackProps
+ * AppStackProps
  *
  * Purpose:
- *   Strongly-typed Stack props for AppLayerStack.
+ *   Strongly-typed Stack props for AppStack.
  */
-export interface AppLayerStackProps extends cdk.StackProps, AppLayerProps {}
+export interface AppStackProps extends cdk.StackProps, AppProps {}
 
 /**
- * AppLayerStageProps
+ * AppStageProps
  *
  * Purpose:
- *   Strongly-typed Stage props for AppLayerStage.
+ *   Strongly-typed Stage props for AppStage.
  */
-export interface AppLayerStageProps extends cdk.StageProps, AppLayerProps {}
+export interface AppStageProps extends cdk.StageProps, AppProps {}

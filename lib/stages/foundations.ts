@@ -26,6 +26,7 @@ export class FoundationsStage extends cdk.Stage {
       this,
       'SharedServicesStack',
       {
+        description: 'Shared services stack for foundational resources (e.g., Cognito, ECR)',
         ...props,
       },
     );
@@ -33,7 +34,7 @@ export class FoundationsStage extends cdk.Stage {
       this,
       'InfrastructureStack',
       {
-        ...props,
+        description: 'Infrastructure stack for foundational resources (e.g., VPC, RDS, S3)',
       },
     );
     infrastructureStack.addDependency(sharedServicesStack);
