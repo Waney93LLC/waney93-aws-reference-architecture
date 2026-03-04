@@ -15,9 +15,6 @@ import { CognitoSecretsConstruct } from './cognito-secrets-constructs';
  */
 export class CognitoConstruct extends Construct {
   private props: CognitoConstructProps;
-  public userPool: CognitoUserPoolConstruct;
-  public domainCert: acm.ICertificate;
-  public secrets: CognitoSecretsConstruct;
   /**
    * Create a new instance of CognitoConstruct.
    * @param scope
@@ -27,10 +24,6 @@ export class CognitoConstruct extends Construct {
   constructor(scope: Construct, id: string, props: CognitoConstructProps) {
     super(scope, id);
     this.props = props;
-
-    this.userPool = this.createUserPool();
-    this.domainCert = this.customDomainAndCert(this.userPool);
-    this.secrets = this.createSecrets(this.userPool);
   }
 
   /**
@@ -44,17 +37,12 @@ export class CognitoConstruct extends Construct {
     }
     const {
       app,
-      removalPolicy,
-      userPoolSelfSignUpEnabled,
-      allowUsernameSignIn,
     } = cognito;
     return new CognitoUserPoolConstruct(this, `${idPrefix}UserPool`, {
       appName: app.name,
-      removalPolicy: removalPolicy,
-      userPoolSelfSignUpEnabled: userPoolSelfSignUpEnabled,
-      allowUsernameSignIn: allowUsernameSignIn,
       callbackUrls: app.callbackUrls,
       logoutUrls: app.logoutUrls,
+      ...cognito,
     });
   }
 

@@ -2,16 +2,18 @@
 import { Construct } from 'constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as cdk from 'aws-cdk-lib';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import {
   EventRouterProps,
   SharedServicesBuilderProps,
-  SharedServicesConstructProps,
 } from '../interfaces/shared-services';
 import { EcrConstruct } from '../constructs/ecr';
 import { OidcCiRoleConstruct } from '../constructs/odic-ci-role';
 import { EventRouter } from '../constructs/event-router';
 import { OpsRunbookConstruct } from '../constructs/ops-runbook';
 import { CognitoConstruct } from '../constructs/cognito/cognito-construct';
+import { CognitoUserPoolConstruct } from '../constructs/cognito/cognito-userpool-constructs';
+import { CognitoSecretsConstruct } from '../constructs/cognito/cognito-secrets-constructs';
 
 /**
  * SharedServicesBuilder
@@ -30,6 +32,9 @@ export class SharedServicesBuilder {
   private readonly props: Required<SharedServicesBuilderProps>;
   private repo?: EcrConstruct;
   private ciGithubEcrRoles?: iam.PolicyStatement[];
+  private  userPool?: CognitoUserPoolConstruct;
+  private  domainCert?: acm.ICertificate;
+  private  secrets?: CognitoSecretsConstruct;
 
   /**
    * SharedServicesBuilder constructor creates a builder that orchestrates
@@ -184,10 +189,17 @@ export class SharedServicesBuilder {
         'Cognito configuration is required to create Cognito resources',
       );
     }
-    new CognitoConstruct(this.scope, 'CognitoConstruct', {
-      idPrefix: 'SharedServicesCognito',
-      cognito: this.props.cognito,
-    });
+    const cognitoConstruct = new CognitoConstruct(
+      this.scope,
+      'CognitoConstruct',
+      {
+        idPrefix: `${this.idPrefix}-Cognito`,
+        cognito: this.props.cognito,
+      },
+    );
+    this.userPool = cognitoConstruct.createUserPool();
+    this.domainCert = cognitoConstruct.customDomainAndCert(this.userPool);
+    this.secrets = cognitoConstruct.createSecrets(this.userPool);
 
     return this;
   }
@@ -196,7 +208,17 @@ export class SharedServicesBuilder {
    * Optional: define CDK outputs in one place.
    */
   public outputs(): this {
-    // TODO: add outputs
+    new cdk.CfnOutput(this.scope, 'cognitoUserPoolId', {
+      value: this.userPool?.userPool.userPoolId || 'undefined',
+      description: 'Cognito User Pool ID',
+      exportName: `${this.idPrefix}-CognitoUserPoolId`,
+    });
+    new cdk.CfnOutput(this.scope, 'cognitoDomainCertArn', {
+      value: this.domainCert?.certificateArn || 'undefined',
+      description: 'Cognito Custom Domain Certificate ARN',
+      exportName: `${this.idPrefix}-CognitoDomainCertArn`,
+    });
+ 
     return this;
   }
 }
