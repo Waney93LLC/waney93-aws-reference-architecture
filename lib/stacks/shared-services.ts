@@ -120,7 +120,7 @@ export class SharedServicesStack extends cdk.Stack {
   getCognitoConfig(acmCertificateArn: string): COGNITO_CONFIG {
     return {
       app: {
-        name: 'SharedServicesCognitoApp',
+        name: 'DjangoWebClient',
         callbackUrls: ['https://example.com/callback'],
         logoutUrls: ['https://example.com/logout'],
         secret: { name: 'SharedServicesCognitoAppSecret' },

@@ -197,9 +197,9 @@ export class SharedServicesBuilder {
         cognito: this.props.cognito,
       },
     );
-    // this.userPool = cognitoConstruct.createUserPool();
-    // this.domainCert = cognitoConstruct.customDomainAndCert(this.userPool);
-    // this.secrets = cognitoConstruct.createSecrets(this.userPool);
+    this.userPool = cognitoConstruct.createUserPool();
+    this.domainCert = cognitoConstruct.customDomainAndCert(this.userPool);
+    this.secrets = cognitoConstruct.createSecrets(this.userPool);
 
     return this;
   }
@@ -208,16 +208,16 @@ export class SharedServicesBuilder {
    * Optional: define CDK outputs in one place.
    */
   public outputs(): this {
-    // new cdk.CfnOutput(this.scope, 'cognitoUserPoolId', {
-    //   value: this.userPool?.userPool.userPoolId || 'undefined',
-    //   description: 'Cognito User Pool ID',
-    //   exportName: `${this.idPrefix}-CognitoUserPoolId`,
-    // });
-    // new cdk.CfnOutput(this.scope, 'cognitoDomainCertArn', {
-    //   value: this.domainCert?.certificateArn || 'undefined',
-    //   description: 'Cognito Custom Domain Certificate ARN',
-    //   exportName: `${this.idPrefix}-CognitoDomainCertArn`,
-    // });
+    new cdk.CfnOutput(this.scope, 'cognitoUserPoolId', {
+      value: this.userPool?.userPool.userPoolId || 'undefined',
+      description: 'Cognito User Pool ID',
+      exportName: `${this.idPrefix}-CognitoUserPoolId`,
+    });
+    new cdk.CfnOutput(this.scope, 'cognitoDomainCertArn', {
+      value: this.domainCert?.certificateArn || 'undefined',
+      description: 'Cognito Custom Domain Certificate ARN',
+      exportName: `${this.idPrefix}-CognitoDomainCertArn`,
+    });
  
     return this;
   }

@@ -25,21 +25,21 @@ export class CognitoUserPoolConstruct extends Construct {
       removalPolicy: props.removalPolicy,
     });
 
-    // this.client = this.userPool.addClient('DjangoWebClient', {
-    //   generateSecret: true,
-    //   oAuth: {
-    //     flows: { authorizationCodeGrant: true },
-    //     scopes: [
-    //       cognito.OAuthScope.OPENID,
-    //       cognito.OAuthScope.EMAIL,
-    //       cognito.OAuthScope.PROFILE,
-    //     ],
-    //     callbackUrls: props.callbackUrls,
-    //     logoutUrls: props.logoutUrls,
-    //   },
-    //   supportedIdentityProviders: [
-    //     cognito.UserPoolClientIdentityProvider.COGNITO,
-    //   ],
-    // });
+    this.client = this.userPool.addClient(props.appName, {
+      generateSecret: true,
+      oAuth: {
+        flows: { authorizationCodeGrant: true },
+        scopes: [
+          cognito.OAuthScope.OPENID,
+          cognito.OAuthScope.EMAIL,
+          cognito.OAuthScope.PROFILE,
+        ],
+        callbackUrls: props.callbackUrls,
+        logoutUrls: props.logoutUrls,
+      },
+      supportedIdentityProviders: [
+        cognito.UserPoolClientIdentityProvider.COGNITO,
+      ],
+    });
   }
 }
