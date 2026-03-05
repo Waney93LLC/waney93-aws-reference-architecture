@@ -26,26 +26,27 @@ export class FoundationsStage extends cdk.Stage {
       this,
       'SharedServicesStack',
       {
-        description: 'Shared services stack for foundational resources (e.g., Cognito, ECR)',
+        description:
+          'Shared services stack for foundational resources (e.g., Cognito, ECR)',
+        tags: {
+          ManagedByPipeline: 'App-CdkPipeline',
+        },
         ...props,
       },
     );
-    cdk.Tags.of(sharedServicesStack).add(
-      'ManagedByPipeline',
-      'App-CdkPipeline',
-    );
+
     const infrastructureStack = new BaseInfrastructureStack(
       this,
       'InfrastructureStack',
       {
-        description: 'Infrastructure stack for foundational resources (e.g., VPC, RDS, S3)',
+        description:
+          'Infrastructure stack for foundational resources (e.g., VPC, RDS, S3)',
+        tags: {
+          ManagedByPipeline: 'App-CdkPipeline',
+        },
       },
     );
-    
-    cdk.Tags.of(infrastructureStack).add(
-      'ManagedByPipeline',
-      'App-CdkPipeline',
-    );
+
     infrastructureStack.addDependency(sharedServicesStack);
   }
 }
