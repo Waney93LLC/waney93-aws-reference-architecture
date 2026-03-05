@@ -11,7 +11,7 @@ export interface EnvironmentConfig {
     notifications?: {
       emailParameter: string;
     };
-    skip_shared_services?: boolean;
+    skip_foundations?: boolean;
   };
 }
 
@@ -45,7 +45,7 @@ export function getEnvConfig(stage: Stage): EnvironmentConfig {
       repository: { ...REPO, branch },
       codestar: { connectionArnParameter: CODESTAR_CONNECTION_ARN_PARAM },
       notifications: { emailParameter: NOTIFICATIONS_EMAIL_PARAM },
-      skip_shared_services: stage === 'test', 
+      skip_foundations: stage === 'prod',
     },
   };
 }

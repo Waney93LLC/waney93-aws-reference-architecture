@@ -64,7 +64,7 @@ export class Waney93CICDStack extends cdk.Stack {
       synthCommands: [
         'npm ci',
         'npm install -g aws-cdk@latest',
-        `cdk synth -c stage=${stage} -c SKIP_SHARED_SERVICES=${pipeline.skip_shared_services}`,
+        `cdk synth -c stage=${stage} -c SKIP_FOUNDATIONS=${pipeline.skip_foundations}`,
       ],
     });
 
@@ -100,7 +100,7 @@ export class Waney93CICDStack extends cdk.Stack {
       pipelineName: pipeline.name,
       acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
     });
-    if (process.env.SKIP_SHARED_SERVICES !== 'true') {
+    if (process.env.SKIP_FOUNDATIONS !== 'true') {
       foundationsWave.addStage(sharedStage);
     }
 
