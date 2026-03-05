@@ -30,7 +30,6 @@ export class BaseInfrastructureStack extends cdk.Stack {
     super(scope, id, props);
 
     new BaseInfrastructureBuilder(this, 'BaseInfrastructureBuilder', {
-      ...props,
       network: this.getNetworkConfig(),
     })
       .withNetwork()

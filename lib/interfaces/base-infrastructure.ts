@@ -38,15 +38,7 @@ export interface BaseInfrastructureBuilderProps extends BaseInfrastructureProps 
  * Purpose:
  *   Strongly-typed Stack props for BaseInfrastructureStack.
  */
-export interface BaseInfrastructureStackProps extends cdk.StackProps, BaseInfrastructureProps {}
-
-/**
- * BaseInfrastructureStageProps
- *
- * Purpose:
- *   Strongly-typed Stage props for BaseInfrastructureStage.
- */
-export interface BaseInfrastructureStageProps extends cdk.StageProps, BaseInfrastructureProps {}
+export interface BaseInfrastructureStackProps extends cdk.StackProps {}
 
 export type NETWORK_CONFIG = {
   maxAzs?: number; // default 2

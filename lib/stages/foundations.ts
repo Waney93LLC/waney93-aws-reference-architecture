@@ -44,6 +44,7 @@ export class FoundationsStage extends cdk.Stage {
         tags: {
           ManagedByPipeline: 'App-CdkPipeline',
         },
+        ...props,
       },
     );
 
