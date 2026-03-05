@@ -64,7 +64,7 @@ export class Waney93CICDStack extends cdk.Stack {
       synthCommands: [
         'npm ci',
         'npm install -g aws-cdk@latest',
-        `cdk synth -c stage=${stage}`,
+        `cdk synth -c stage=${stage} -c SKIP_SHARED_SERVICES=${pipeline.skip_shared_services}`,
       ],
     });
 
@@ -85,27 +85,29 @@ export class Waney93CICDStack extends cdk.Stack {
     //
     // Because these resources establish long-lived infrastructure for the
     // environment, a manual approval step is required before execution.
-    const foundationsWave = pipelineConstruct.pipeline.addWave(`${stage}-Foundations`, {
-      pre: [
-        new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
-          comment: 'Approve deployment of the first wave.',
-        }),
-      ],
-    });
+    const foundationsWave = pipelineConstruct.pipeline.addWave(
+      `${stage}-Foundations`,
+      {
+        pre: [
+          new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
+            comment: 'Approve deployment of the first wave.',
+          }),
+        ],
+      },
+    );
     const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
       env: env,
       pipelineName: pipeline.name,
       acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
     });
-
-    foundationsWave.addStage(sharedStage);
+    if (process.env.SKIP_SHARED_SERVICES !== 'true') {
+      foundationsWave.addStage(sharedStage);
+    }
 
     const appWave = pipelineConstruct.pipeline.addWave(`${stage}-App`);
     const appStage = new AppStage(this, `${stage}-AppStage`, {
       env: env,
     });
     appWave.addStage(appStage);
-    
-
   }
 }
