@@ -23,6 +23,10 @@ export class AppStage extends cdk.Stage {
     super(scope, id, props);
 
     new AppStack(this, 'AppStack', {
+      description: 'App stack for application resources (e.g., Lambda, API Gateway, ECS)',
+      tags: {
+        'ManagedByPipeline': 'App-CdkPipeline',
+      },
       ...props,
     });
   }

@@ -6,6 +6,7 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { CICDStackProps } from './cicd-stack-props';
 import { PipelineConstruct } from '../../constructs/pipeline';
 import { FoundationsStage } from '../../stages/foundations';
+import { AppStage } from '../../stages/app';
 
 /**
  * Waney93CICDStack
@@ -84,7 +85,7 @@ export class Waney93CICDStack extends cdk.Stack {
     //
     // Because these resources establish long-lived infrastructure for the
     // environment, a manual approval step is required before execution.
-    const foundationsWave = pipelineConstruct.pipeline.addWave(stage, {
+    const foundationsWave = pipelineConstruct.pipeline.addWave(`${stage}-Foundations`, {
       pre: [
         new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
           comment: 'Approve deployment of the first wave.',
@@ -97,8 +98,14 @@ export class Waney93CICDStack extends cdk.Stack {
       acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
     });
 
-    
     foundationsWave.addStage(sharedStage);
+
+    const appWave = pipelineConstruct.pipeline.addWave(`${stage}-App`);
+    const appStage = new AppStage(this, `${stage}-AppStage`, {
+      env: env,
+    });
+    appWave.addStage(appStage);
+    
 
   }
 }
