@@ -22,14 +22,13 @@ export class OpsRunbookConstruct extends Construct {
 
     const region = cdk.Stack.of(this).region;
     const account = cdk.Stack.of(this).account;
-    if(!props.migrationOps) {
-      throw new Error('migrationOps config is required for OpsRunbookConstruct');
+    if (!props.migrationOps) {
+      throw new Error(
+        'migrationOps config is required for OpsRunbookConstruct',
+      );
     }
-    const {
-        target,
-      runCommandDocumentName,
-      automationRunbookName,
-    } = props.migrationOps;
+    const { target, runCommandDocumentName, automationRunbookName } =
+      props.migrationOps;
 
     this.runbookName =
       automationRunbookName ?? 'RunBootstrapOnFoundationCreate';
@@ -129,9 +128,7 @@ export class OpsRunbookConstruct extends Construct {
       }),
     );
 
-   
     const automationDefinitionArn = `arn:aws:ssm:${region}:${account}:automation-definition/${this.runbookName}`;
-
 
     const targetInput: Record<string, string[]> = {
       AutomationAssumeRole: [this.automationRole.roleArn],
@@ -139,7 +136,6 @@ export class OpsRunbookConstruct extends Construct {
       TargetInstanceTagValue: [target.instance.tagValue],
       RunCommandDocumentName: [runCommandDocumentName],
     };
-
 
     const eventPattern: events.EventPattern = {
       source: ['aws.cloudformation'],
@@ -156,7 +152,6 @@ export class OpsRunbookConstruct extends Construct {
       },
     };
 
-
     const router = new EventRouter(this, 'OpsRunbookRouter', {
       routes: [
         {
@@ -172,7 +167,6 @@ export class OpsRunbookConstruct extends Construct {
         },
       ],
     });
-
 
     this.rule = router.rules[0];
   }

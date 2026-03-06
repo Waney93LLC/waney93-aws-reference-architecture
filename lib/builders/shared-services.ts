@@ -35,6 +35,7 @@ export class SharedServicesBuilder {
   private  userPool?: CognitoUserPoolConstruct;
   private  domainCert?: acm.ICertificate;
   private  secrets?: CognitoSecretsConstruct;
+  private migrationOpsRunbook?: OpsRunbookConstruct;
 
   /**
    * SharedServicesBuilder constructor creates a builder that orchestrates
@@ -177,7 +178,7 @@ export class SharedServicesBuilder {
         'Migration Ops configuration is required to create Ops Runbook',
       );
     }
-    new OpsRunbookConstruct(this.scope, 'MigrationBootstrapRunbook', {
+    this.migrationOpsRunbook = new OpsRunbookConstruct(this.scope, 'MigrationBootstrapRunbook', {
       migrationOps: this.props.migrationOps,
     });
     return this;

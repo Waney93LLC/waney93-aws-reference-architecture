@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { BaseInfrastructureBuilderProps } from '../interfaces/base-infrastructure';
-import { Network } from '../constructs/network-construct';
+import { Network } from '../constructs/network';
 
 /**
  * BaseInfrastructureBuilder
