@@ -47,6 +47,12 @@ export class PipelineConstruct extends Construct {
         ],
         resources: ['*'],
       }),
+      new PolicyStatement({
+        actions: [
+          'iam:GetRole',
+        ],
+        resources: ['arn:aws:iam::*:role/cdk-*'],
+      }),
     ];
 
     const artifactsBucket =
