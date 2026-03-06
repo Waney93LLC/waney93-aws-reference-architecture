@@ -44,6 +44,7 @@ export class PipelineConstruct extends Construct {
           'ec2:DescribeNatGateways',
           'ec2:DescribeVpcPeeringConnections',
           'ec2:DescribeVpnGateways',
+          'ec2:DescribeAvailabilityZones',
         ],
         resources: ['*'],
       }),
