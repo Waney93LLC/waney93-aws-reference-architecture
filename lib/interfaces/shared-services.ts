@@ -77,7 +77,7 @@ export type MIGRATION_OPS_CONFIG = {
       tagValue: string;
     };
     stack: {
-      name: string;
+      name?: string;
     };
   };
   script?: {
@@ -121,6 +121,7 @@ export interface SharedServicesStackProps extends cdk.StackProps {
 export interface FoundationStageProps extends cdk.StageProps, SharedServicesProps {
   pipelineName?: string;
   acmCertificateArnName?: string;
+  stage:Stage;
 }
 
 

@@ -2,6 +2,8 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { BaseInfrastructureBuilderProps } from '../interfaces/base-infrastructure';
 import { Network } from '../constructs/network';
+import { RdsBastion } from '../constructs/bastion';
+import { RdsBastionConfigBuilder } from './rds-bastion';
 
 /**
  * BaseInfrastructureBuilder
@@ -40,9 +42,26 @@ export class BaseInfrastructureBuilder {
     } as Required<BaseInfrastructureBuilderProps>;
   }
 
+  /**
+   * withNetwork adds a VPC and related network resources to the builder.
+   */
   public withNetwork(): this {
     this.network = new Network(this.scope, `${this.idPrefix}-Network`, {
       ...this.props.network,
+    });
+    return this;
+  }
+
+  /**
+   * withRdsBastion adds a bastion host for RDS access to the builder.
+   */
+  public withRdsBastion(): this {
+    if (!this.network) throw new Error('Call withNetwork() before withRdsBastion().'); 
+    if(!this.props.rdsBastion) throw new Error('rdsBastion config is required to create RdsBastion construct.');
+    const bastionConfig = new RdsBastionConfigBuilder(this.scope,this.props.rdsBastion,this.network.vpc).build();
+    new RdsBastion(this.scope, `${this.idPrefix}-RdsBastion`, {
+      vpc: this.network.vpc,
+      ...bastionConfig,
     });
     return this;
   }

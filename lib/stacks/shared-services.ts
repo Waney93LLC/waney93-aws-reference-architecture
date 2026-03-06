@@ -27,11 +27,11 @@ export class SharedServicesStack extends cdk.Stack {
    */
   constructor(scope: Construct, id: string, props: SharedServicesStackProps) {
     super(scope, id, props);
-    const ecrConfig: ECR_CONFIG = this.getEcrConfig();
-    const oidcConfig: OIDC_CONFIG = this.getOidcConfig();
+    const ecrConfig: ECR_CONFIG = SharedServicesStack.getEcrConfig();
+    const oidcConfig: OIDC_CONFIG = SharedServicesStack.getOidcConfig();
     let migrationOpsConfig: MIGRATION_OPS_CONFIG | undefined;
     if (props.pipelineName) {
-      migrationOpsConfig = this.getMigrationOpsConfig(props.pipelineName);
+      migrationOpsConfig = SharedServicesStack.getMigrationOpsConfig(props.pipelineName);
     }
     let cognitoConfig: COGNITO_CONFIG | undefined;
     if (props.acmCertificateArnName) {
@@ -39,7 +39,7 @@ export class SharedServicesStack extends cdk.Stack {
         this,
         props.acmCertificateArnName,
       );
-      cognitoConfig = this.getCognitoConfig(acmCertificateArn);
+      cognitoConfig = SharedServicesStack.getCognitoConfig(acmCertificateArn);
     }
 
     new SharedServicesBuilder(this, 'SharedServicesBuilder', {
@@ -59,7 +59,7 @@ export class SharedServicesStack extends cdk.Stack {
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
 
-  getEcrConfig(): ECR_CONFIG {
+  static getEcrConfig(): ECR_CONFIG {
     return {
       REPO_NAME: 'waney93-ecr-repo',
       ImageScanOnPush: true,
@@ -70,7 +70,7 @@ export class SharedServicesStack extends cdk.Stack {
     };
   }
 
-  getOidcConfig(): OIDC_CONFIG {
+  static getOidcConfig(): OIDC_CONFIG {
     return {
       applicationRepository: {
         owner: 'Waney93LLC',
@@ -101,7 +101,7 @@ export class SharedServicesStack extends cdk.Stack {
     };
   }
 
-  getMigrationOpsConfig(pipelineName: string): MIGRATION_OPS_CONFIG {
+  static getMigrationOpsConfig(pipelineName?: string): MIGRATION_OPS_CONFIG {
     return {
       automationRunbookName: 'RunMigrationBootstrap',
       runCommandDocumentName: 'BastionMigrationDocument',
@@ -117,7 +117,7 @@ export class SharedServicesStack extends cdk.Stack {
     };
   }
 
-  getCognitoConfig(acmCertificateArn: string): COGNITO_CONFIG {
+  static getCognitoConfig(acmCertificateArn: string): COGNITO_CONFIG {
     return {
       app: {
         name: 'DjangoWebClient',

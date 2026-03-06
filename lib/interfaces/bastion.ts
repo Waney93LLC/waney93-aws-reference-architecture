@@ -6,53 +6,63 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { MIGRATION_OPS_CONFIG } from './shared-services';
 
 
-/**
- * An interface for configuring the bastion security groups
- *
- */
+export interface BastionPortRule {
+  port: ec2.Port;
+  description: string;
+}
+
 export interface BastionSecurityGroupConfig {
-  ports: { port: ec2.Port; description: string }[];
+  ports: BastionPortRule[];
   definition: ec2.SecurityGroup;
   ingressRuleDescription: string;
 }
-/**
- * This is an extension for the stack poperties used to create a bastion host for RDS access.
- *
- */
-export interface RDSBastionStackProps extends cdk.StackProps {
-  vpc: ec2.IVpc;
-  /**
-   * Prefer private subnet + NAT for outbound,
-   * but public subnet works too. Default: public
-   */
-  subnetSelection?: ec2.SubnetSelection;
-  bastionConfig: {
-    type: ec2.InstanceType;
-    role: iam.Role;
-    ami: ec2.IMachineImage;
-    userData: ec2.UserData;
-  };
 
-  /**
-   * Optional: install DB clients via user data
-   */
-  installClients?: { postgres?: boolean; mysql?: boolean };
+export interface BastionInstanceConfig {
+  type: ec2.InstanceType;
+  role: iam.Role;
+  ami: ec2.IMachineImage;
+  userData: ec2.UserData;
+}
+
+export interface MigrationAppUserCredentials {
+  name: string;
+  secretName: string;
+}
+
+export interface MigrationDatabaseCredentials {
+  loginSecretName: string;
+  appUser: MigrationAppUserCredentials;
+}
+
+export interface MigrationOperations {
+  config: MIGRATION_OPS_CONFIG;
+  databaseCredentials: MigrationDatabaseCredentials;
+}
+
+export interface BastionBaseConfig {
+  subnetSelection?: ec2.SubnetSelection;
+  bastionConfig: BastionInstanceConfig;
   s3BucketOps?: IBucket;
   migrationOps: MigrationOperations;
   bastionSecGrpConfig: BastionSecurityGroupConfig;
 }
 
-
-/**
- * Interface for migration objects
- */
-export interface MigrationOperations {
-  secretId: string;
-  appUserSecretId: string;
-  appUserName?: string;
-  config: MIGRATION_OPS_CONFIG;
+export interface BastionConfig extends BastionBaseConfig {
+  vpc: ec2.IVpc;
 }
 
+
+
+export interface RdsBastionConfigBuilderProps {
+  userDataCommands?: string[];
+  subnetSelection?: ec2.SubnetSelection;
+  instance: {
+    type: ec2.InstanceType;
+    ami: ec2.IMachineImage;
+  };
+  securityGroupPorts: BastionPortRule[];
+  migrationOps: MigrationOperations;
+}
 
 
 export interface BootstrapAutomationStackProps extends cdk.StackProps {

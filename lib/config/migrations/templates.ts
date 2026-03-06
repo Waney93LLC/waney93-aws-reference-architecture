@@ -1,3 +1,5 @@
+import { MigrationOperations } from '../../interfaces/bastion';
+import { SharedServicesStack } from '../../stacks/shared-services';
 
 /**
  * This is an S3 compatible migration script template. It will download the migration configuration and assets from S3, then execute the migration process.
@@ -5,7 +7,7 @@
  * @param entryFile The entry file for the migration process, which contains the necessary configuration for the migration.
  * @returns An array of strings representing the shell commands to be executed on the bastion host to perform the migration.
  */
-export const getS3MigrationScriptTemplate = (
+export const getS3MigrationScriptSteps = (
   scriptS3Url: string,
   entryFile: string,
 ): string[] => [
@@ -28,3 +30,26 @@ export const getS3MigrationScriptTemplate = (
   'chmod +x $MIGRATION_PROCESS_FILE',
   './$MIGRATION_PROCESS_FILE',
 ];
+
+export const getDatabaseMigrationParameterConfig = (
+  stage: string,
+): MigrationOperations['databaseCredentials'] => {
+  return {
+      loginSecretName: `/waney93/${stage}/aurora/secret-name`,
+      appUser: {
+        name: `/waney93/${stage}/app-user-name`,
+        secretName: `/waney93/${stage}/aurora/app-user-secret-name`,
+      },
+  };
+};
+
+export const getScriptMigrationParameterConfig = (
+  stage: string,
+): MigrationOperations['config']['script'] => {
+  return {
+      folderPath: `waney93/${stage}/migration-scripts/`,
+      entryFile: `migration-config.json`,
+      description: 'Migration script for on-prem to RDS migration',
+
+  };
+};

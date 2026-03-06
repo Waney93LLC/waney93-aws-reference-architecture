@@ -2,6 +2,10 @@
 import * as cdk from 'aws-cdk-lib';
 import { InterfaceVpcEndpointAwsService } from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { BastionSecurityGroupConfig, RdsBastionConfigBuilderProps } from './bastion';
+import { Stage } from '../config/environment';
+
 
 /**
  * BaseInfrastructureProps
@@ -11,7 +15,9 @@ import { LogGroup } from 'aws-cdk-lib/aws-logs';
  *   Keep this small and stable; apply defaults in builders.
  */
 export interface BaseInfrastructureProps {
-    network: NETWORK_CONFIG;
+  stage: string;
+  network: NETWORK_CONFIG;
+  rdsBastion?: RdsBastionConfigBuilderProps;
 }
 
 /**
@@ -30,7 +36,9 @@ export interface BaseInfrastructureConstructProps {}
  *   Constructor props for BaseInfrastructureBuilder.
  *   Often you can alias this to BaseInfrastructureProps.
  */
-export interface BaseInfrastructureBuilderProps extends BaseInfrastructureProps {}
+export interface BaseInfrastructureBuilderProps extends BaseInfrastructureProps {
+
+}
 
 /**
  * BaseInfrastructureStackProps
@@ -38,7 +46,9 @@ export interface BaseInfrastructureBuilderProps extends BaseInfrastructureProps 
  * Purpose:
  *   Strongly-typed Stack props for BaseInfrastructureStack.
  */
-export interface BaseInfrastructureStackProps extends cdk.StackProps {}
+export interface BaseInfrastructureStackProps extends cdk.StackProps {
+  stage:Stage;
+}
 
 export type NETWORK_CONFIG = {
   maxAzs?: number; // default 2
@@ -50,3 +60,16 @@ export type NETWORK_CONFIG = {
   cidrMaskPrivate: number;
   idPrefix: string;
 }   
+
+
+
+export type RDS_BASTION_CONFIG = {
+  userDataCommands?: string[];
+  subnetSelection: ec2.SubnetSelection;
+  instance: {
+    type: ec2.InstanceType;
+    ami: ec2.IMachineImage;
+  };
+  securityGroupPorts: BastionSecurityGroupConfig['ports'];
+
+}; 

@@ -4,12 +4,9 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import {
-  MigrationOperations,
-  RDSBastionStackProps,
-} from '../interfaces/bastion';
+import { MigrationOperations, BastionConfig } from '../interfaces/bastion';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { getS3MigrationScriptTemplate } from '../config/templates/migration-scripts';
+import { getS3MigrationScriptSteps } from '../config/migrations/templates';
 
 /**
  * Bastion host module (SSM-managed) for accessing RDS in the VPC.
@@ -24,7 +21,7 @@ export class RdsBastion extends Construct {
   public readonly instance: ec2.Instance;
   public readonly role: iam.Role;
 
-  constructor(scope: Construct, id: string, props: RDSBastionStackProps) {
+  constructor(scope: Construct, id: string, props: BastionConfig) {
     super(scope, id);
 
     const {
@@ -103,7 +100,7 @@ export class RdsBastion extends Construct {
         'Migration script configuration is required to create migration SSM Document',
       );
     }
-    const migrationSteps = getS3MigrationScriptTemplate(
+    const migrationSteps = getS3MigrationScriptSteps(
       `s3://${s3BucketOps.bucketName}/${migrationOps.config.script.folderPath}`,
       migrationOps.config.script.entryFile,
     );
