@@ -99,6 +99,7 @@ export class Waney93CICDStack extends cdk.Stack {
       env: env,
       pipelineName: pipeline.name,
       acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
+      stage
     });
     if (process.env.SKIP_FOUNDATIONS !== 'true') {
       foundationsWave.addStage(sharedStage);
