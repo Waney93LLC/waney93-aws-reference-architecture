@@ -48,9 +48,11 @@ export class PipelineConstruct extends Construct {
         resources: ['*'],
       }),
       new PolicyStatement({
-        actions:['iam:GetRole'],
-        resources:['arn:aws:iam:*role/cdk-*'],
-      })
+        actions: ['sts:AssumeRole'],
+        resources: [
+          `arn:aws:iam::${process.env.CDK_DEFAULT_ACCOUNT}:role/cdk-*`,
+        ],
+      }),
     ];
 
     const artifactsBucket =
