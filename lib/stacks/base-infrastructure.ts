@@ -32,7 +32,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
     new BaseInfrastructureBuilder(this, 'BaseInfrastructureBuilder', {
       network: this.getNetworkConfig(),
     })
-      .withNetwork()
+     // .withNetwork()
       .outputs();
 
     // Optional tagging convention
