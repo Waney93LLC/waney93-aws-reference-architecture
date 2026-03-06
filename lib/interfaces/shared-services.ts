@@ -71,16 +71,20 @@ export type OIDC_CONFIG = {
 export type MIGRATION_OPS_CONFIG = {
   automationRunbookName: string;
   runCommandDocumentName: string;
-  target:{
-    instance:{
+  target: {
+    instance: {
       tagKey: string;
       tagValue: string;
-    },
-    stack:{
+    };
+    stack: {
       name: string;
-    }
-  }
-  
+    };
+  };
+  script?: {
+    folderPath: string;
+    entryFile: string;
+    description?: string;
+  };
 };
 
 export type COGNITO_CONFIG = {

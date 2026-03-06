@@ -1,6 +1,7 @@
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
+
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import * as cdk from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { MIGRATION_OPS_CONFIG } from './shared-services';
 
@@ -25,11 +26,13 @@ export interface RDSBastionStackProps extends cdk.StackProps {
    * but public subnet works too. Default: public
    */
   subnetSelection?: ec2.SubnetSelection;
-  instance:{
+  bastionConfig: {
     type: ec2.InstanceType;
-    role:iam.Role;
+    role: iam.Role;
+    ami: ec2.IMachineImage;
+    userData: ec2.UserData;
   };
-  
+
   /**
    * Optional: install DB clients via user data
    */

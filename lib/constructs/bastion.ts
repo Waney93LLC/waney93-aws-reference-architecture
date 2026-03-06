@@ -4,8 +4,12 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { RDSBastionStackProps } from '../interfaces/bastion';
-
+import {
+  MigrationOperations,
+  RDSBastionStackProps,
+} from '../interfaces/bastion';
+import { IBucket } from 'aws-cdk-lib/aws-s3';
+import { getS3MigrationScriptTemplate } from '../config/templates/migration-scripts';
 
 /**
  * Bastion host module (SSM-managed) for accessing RDS in the VPC.
@@ -26,7 +30,7 @@ export class RdsBastion extends Construct {
     const {
       vpc,
       subnetSelection = { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-      instance,
+      bastionConfig,
       s3BucketOps,
       migrationOps,
       bastionSecGrpConfig,
@@ -42,7 +46,7 @@ export class RdsBastion extends Construct {
       );
     }
 
-    this.role = instance.role;
+    this.role = bastionConfig.role;
 
     // Allow sending SSM command against the custom document (if you create it)
     this.role.addToPrincipalPolicy(
@@ -58,104 +62,67 @@ export class RdsBastion extends Construct {
       }),
     );
 
+    // An SSM document is created based on where its assets are stored, whether in an S3 bucket or another location.
+    if (s3BucketOps) {
+      this.enableS3AssetsForMigration(s3BucketOps, this.role, migrationOps);
+    }
 
+    this.instance = new ec2.Instance(this, 'Bastion', {
+      vpc,
+      vpcSubnets: subnetSelection,
+      instanceType: bastionConfig.type,
+      machineImage: bastionConfig.ami,
+      role: this.role,
+      securityGroup: this.securityGroup,
+      ssmSessionPermissions: true,
+      detailedMonitoring: true,
+      userData: bastionConfig.userData,
+    });
 
-    // // Latest AL2023
-    // const ami = ec2.MachineImage.latestAmazonLinux2023({
-    //   cachedInContext: false,
-    // });
-
-    // // User data: tiny utilities + optional DB clients
-    // const userData = ec2.UserData.forLinux();
-    // userData.addCommands(
-    //   'set -eux',
-    //   'sudo dnf -y update',
-    //   'sudo dnf -y install --allowerasing curl postgresql17 python3 jq unzip',
-    // );
-
-    // this.instance = new ec2.Instance(this, 'Bastion', {
-    //   vpc,
-    //   vpcSubnets: subnetSelection,
-    //   instanceType: instance.type,
-    //   machineImage: ami,
-    //   role: this.role,
-    //   securityGroup: this.securityGroup,
-    //   ssmSessionPermissions: true,
-    //   detailedMonitoring: true,
-    //   userData,
-    // });
-
-    // // Nice to have: Name tag (uses parent Stack name for uniqueness)
-    // cdk.Tags.of(this.instance).add(
-    //   'Name',
-    //   `${cdk.Stack.of(this).stackName}-host`,
-    // );
+    cdk.Tags.of(this.instance).add(
+      'Name',
+      `${cdk.Stack.of(this).stackName}-host`,
+    );
   }
 
-  // Helper function to get the necessary assets from s3 bucket that will enable the migration process
-  enableS3AssetsForMigration(): ssm.CfnDocument {
-    // Optional: S3 access + optional SSM Document (migration doc)
-    // if (s3BucketOps) {
-    //   s3BucketOps.grantReadWrite(this.role);
-    //   // This is redundant with grantReadWrite (but keeping since you had it explicit)
-    //   this.role.addToPrincipalPolicy(
-    //     new iam.PolicyStatement({
-    //       actions: [
-    //         's3:ListBucket',
-    //         's3:GetObject',
-    //         's3:PutObject',
-    //         's3:DeleteObject',
-    //       ],
-    //       resources: [s3BucketOps.bucketArn, `${s3BucketOps.bucketArn}/*`],
-    //     }),
-    //   );
-    //   if (migrationOps) {
-    //     const migrationSteps = this.getMigrationDocs(
-    //       `s3://${s3BucketOps.bucketName}/${migrationOps.config.CONFIG_URL.PATH}`,
-    //       migrationOps.config.CONFIG_URL.FILE,
-    //     );
-    //     new ssm.CfnDocument(this, 'BastionMigrationDoc', {
-    //       name: migrationOps.config.runCommandDocumentName,
-    //       documentType: 'Command',
-    //       content: {
-    //         schemaVersion: '2.2',
-    //         description: 'Run Django migration from S3 to Aurora',
-    //         mainSteps: [
-    //           {
-    //             action: 'aws:runShellScript',
-    //             name: migrationOps.config.SCRIPT.NAME,
-    //             inputs: { runCommand: migrationSteps },
-    //           },
-    //         ],
-    //       },
-    //     });
-    //   }
-    // }
-  }
-
-  getMigrationDocs(
-    migrationURI: string,
-    migrationConfigFile: string,
-  ): string[] {
-    return [
-      'set -euxo pipefail',
-      'cd /home/ec2-user',
-      `export MIGRATION_URI="${migrationURI}" `,
-      `export MIGRATION_CONFIG_FILE="${migrationConfigFile}" `,
-      `aws s3 cp $MIGRATION_URI$MIGRATION_CONFIG_FILE .`,
-      'export ASSETS_FOLDER=$(jq -r ".assets_folder" $MIGRATION_CONFIG_FILE)',
-      'export MIGRATION_ASSETS="${ASSETS_FOLDER}.zip"',
-      'aws s3 cp $MIGRATION_URI$MIGRATION_ASSETS .',
-      'unzip $MIGRATION_ASSETS -d "${ASSETS_FOLDER}"',
-      'mv "${ASSETS_FOLDER}/${ASSETS_FOLDER}"/* .',
-      'rm -rf "${ASSETS_FOLDER}"',
-      'rm "${ASSETS_FOLDER}.zip"',
-      'export DATA_DUMP_FILE=$(jq -r ".data_dump_file" $MIGRATION_CONFIG_FILE)',
-      'export SECRET_ID=$(jq -r ".db_secret_id" $MIGRATION_CONFIG_FILE)',
-      'export APP_USER_SECRET_ID=$(jq -r ".app_user_secret_id" $MIGRATION_CONFIG_FILE)',
-      'export MIGRATION_PROCESS_FILE=$(jq -r ".migration_process_file" $MIGRATION_CONFIG_FILE)',
-      'chmod +x $MIGRATION_PROCESS_FILE',
-      './$MIGRATION_PROCESS_FILE',
-    ];
+  /**
+   * Enables S3 assets for migration by creating an SSM document that runs migration scripts stored in the specified S3 bucket.
+   * @param s3BucketOps The S3 bucket containing the migration scripts and configuration.
+   * @param bastionRole The IAM role associated with the bastion host, which will be granted permissions to access the S3 bucket.
+   * @param migrationOps The migration operations configuration, including details about the migration scripts and process.
+   * @returns The created SSM document that can be used to execute the migration steps on the bastion host.
+   */
+  private enableS3AssetsForMigration(
+    s3BucketOps: IBucket,
+    bastionRole: iam.Role,
+    migrationOps: MigrationOperations,
+  ): ssm.CfnDocument {
+    s3BucketOps.grantReadWrite(bastionRole);
+    if (!migrationOps.config.script) {
+      throw new Error(
+        'Migration script configuration is required to create migration SSM Document',
+      );
+    }
+    const migrationSteps = getS3MigrationScriptTemplate(
+      `s3://${s3BucketOps.bucketName}/${migrationOps.config.script.folderPath}`,
+      migrationOps.config.script.entryFile,
+    );
+    return new ssm.CfnDocument(this, 'BastionMigrationDoc', {
+      name: migrationOps.config.runCommandDocumentName,
+      documentType: 'Command',
+      content: {
+        schemaVersion: '2.2',
+        description:
+          migrationOps.config.script.description ||
+          'SSM Document to run migration scripts on the bastion host',
+        mainSteps: [
+          {
+            action: 'aws:runShellScript',
+            name: migrationOps.config.automationRunbookName,
+            inputs: { runCommand: migrationSteps },
+          },
+        ],
+      },
+    });
   }
 }
