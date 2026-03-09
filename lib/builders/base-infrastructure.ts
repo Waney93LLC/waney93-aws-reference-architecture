@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { BaseInfrastructureBuilderProps } from '../interfaces/base-infrastructure';
 import { Network } from '../constructs/network';
 import { RdsBastion } from '../constructs/bastion';
@@ -21,6 +22,7 @@ export class BaseInfrastructureBuilder {
   private readonly idPrefix: string;
   private readonly props: Required<BaseInfrastructureBuilderProps>;
   private network?: Network;
+  private appClientSg?: ec2.SecurityGroup;
 
   /**
    * BaseInfrastructureBuilder constructor creates a builder that orchestrates
@@ -56,12 +58,39 @@ export class BaseInfrastructureBuilder {
    * withRdsBastion adds a bastion host for RDS access to the builder.
    */
   public withRdsBastion(): this {
-    if (!this.network) throw new Error('Call withNetwork() before withRdsBastion().'); 
-    if(!this.props.rdsBastion) throw new Error('rdsBastion config is required to create RdsBastion construct.');
-    const bastionConfig = new RdsBastionConfigBuilder(this.scope,this.props.rdsBastion,this.network.vpc).build();
+    if (!this.network)
+      throw new Error('Call withNetwork() before withRdsBastion().');
+    if (!this.props.rdsBastion)
+      throw new Error(
+        'rdsBastion config is required to create RdsBastion construct.',
+      );
+    const bastionConfig = new RdsBastionConfigBuilder(
+      this.scope,
+      this.props.rdsBastion,
+      this.network.vpc,
+    ).build();
     new RdsBastion(this.scope, `${this.idPrefix}-RdsBastion`, {
       vpc: this.network.vpc,
       ...bastionConfig,
+    });
+    return this;
+  }
+
+  /**
+   * Adds a security group for application clients that need access to the network.
+   * @returns The current instance of BaseInfrastructureBuilder for chaining.
+   */
+  public withAppClientSecurityGroup(): this {
+    if (!this.network)
+      throw new Error(
+        'Call withNetwork() before withAppClientSecurityGroup().',
+      );
+
+    this.appClientSg = new ec2.SecurityGroup(this.scope, 'AppClientSg', {
+      vpc: this.network.vpc,
+      description:
+        'Shared SG for app workloads that need access to the network (e.g., ECS tasks, Lambda functions)',
+      allowAllOutbound: true,
     });
     return this;
   }
@@ -71,7 +100,10 @@ export class BaseInfrastructureBuilder {
    */
   public outputs(): this {
     if (!this.network) throw new Error('Call withNetwork() before outputs().');
-    new cdk.CfnOutput(this.scope, 'VpcId', { value: this.network.vpc.vpcId, exportName:'networkid' });
+    new cdk.CfnOutput(this.scope, 'VpcId', {
+      value: this.network.vpc.vpcId,
+      exportName: 'networkid',
+    });
 
     return this;
   }
