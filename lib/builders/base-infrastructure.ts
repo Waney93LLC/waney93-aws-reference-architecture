@@ -85,7 +85,7 @@ export class BaseInfrastructureBuilder {
       this.props.stage,
       this.network.vpc,
     ).build();
-    new RdsBastion(this.scope, `${this.idPrefix}-RdsBastion`, {
+    this.bastion = new RdsBastion(this.scope, `${this.idPrefix}-RdsBastion`, {
       vpc: this.network.vpc,
       ...bastionConfig,
     });
