@@ -4,7 +4,6 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   BastionBaseConfig,
   BastionInstanceConfig,
-  BastionSecurityGroupConfig,
   MigrationDatabaseCredentials,
   MigrationOperations,
   RdsBastionConfig,
@@ -12,12 +11,15 @@ import {
 import {
   getResourceParameterConfig,
   ResourceConfigFacade,
+  Stage,
 } from '../config/environment';
+import { SecurityGroupConfig } from '../interfaces/common';
 
 export class RdsBastionConfigBuilder {
   constructor(
     private readonly scope: Construct,
     private readonly props: RdsBastionConfig,
+    private readonly stage: Stage,
     private readonly vpc: ec2.IVpc,
   ) {}
 
@@ -27,7 +29,7 @@ export class RdsBastionConfigBuilder {
     const securityGroup = this.createBastionSecurityGroup();
     const resourceConfig = new ResourceConfigFacade(
       this.props.parameterResolver,
-      getResourceParameterConfig(this.props.stage),
+      getResourceParameterConfig(this.stage),
     );
 
     return {
@@ -106,9 +108,9 @@ export class RdsBastionConfigBuilder {
 
   private createSecurityGroupConfig(
     securityGroup: ec2.SecurityGroup,
-  ): BastionSecurityGroupConfig {
+  ): SecurityGroupConfig {
     return {
-      ports: this.props.securityGroupPorts,
+      portRules: this.props.securityGroupPorts,
       definition: securityGroup,
     };
   }

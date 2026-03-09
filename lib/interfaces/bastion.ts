@@ -6,17 +6,10 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import { MIGRATION_OPS_CONFIG } from './shared-services';
 import { IParameterResolver } from './parameter-resolver';
 import { Stage } from '../config/environment';
+import { PortRule, SecurityGroupConfig } from './common';
 
 
-export interface BastionPortRule {
-  port: ec2.Port;
-  description: string;
-}
 
-export interface BastionSecurityGroupConfig {
-  ports: BastionPortRule[];
-  definition: ec2.SecurityGroup;
-}
 
 export interface BastionInstanceConfig {
   type: ec2.InstanceType;
@@ -45,7 +38,7 @@ export interface BastionBaseConfig {
   bastionConfig: BastionInstanceConfig;
   s3BucketOps?: IBucket;
   migrationOps: MigrationOperations;
-  bastionSecGrpConfig: BastionSecurityGroupConfig;
+  bastionSecGrpConfig: SecurityGroupConfig;
 }
 
 export interface BastionConfig extends BastionBaseConfig {
@@ -59,8 +52,7 @@ export interface RdsBastionConfig {
     type: ec2.InstanceType;
     ami: ec2.IMachineImage;
   };
-  securityGroupPorts: BastionPortRule[];
+  securityGroupPorts: PortRule[];
   parameterResolver: IParameterResolver;
-  stage: Stage;
   config: MIGRATION_OPS_CONFIG;
 }

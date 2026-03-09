@@ -69,6 +69,7 @@ export function getResourceParameterConfig(
         name: `/waney93/${stage}/app-user-name`,
         secretName: `/waney93/${stage}/aurora/app-user-secret-name`,
       },
+      adminUsername: `/waney93/${stage}/aurora/admin-name`,
     },
     migration: {
       folderPath: `/waney93/${stage}/migration-scripts`,
@@ -94,6 +95,9 @@ export class ResourceConfigFacade {
       ),
       appUserSecretName: this.resolver.getString(
         this.config.databaseCredentials.appUser.secretName,
+      ),
+      adminUsername: this.resolver.getString( 
+        this.config.databaseCredentials.adminUsername,
       ),
     };
   }

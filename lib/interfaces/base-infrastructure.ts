@@ -4,6 +4,7 @@ import { InterfaceVpcEndpointAwsService } from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import {RdsBastionConfig } from './bastion';
 import { Stage } from '../config/environment';
+import { RdsConfig } from './rds';
 
 
 /**
@@ -14,9 +15,10 @@ import { Stage } from '../config/environment';
  *   Keep this small and stable; apply defaults in builders.
  */
 export interface BaseInfrastructureProps {
-  stage: string;
+  stage: Stage;
   network: NETWORK_CONFIG;
   rdsBastion?: RdsBastionConfig;
+  rds?: RdsConfig;
 }
 
 /**

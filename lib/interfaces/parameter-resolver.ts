@@ -16,6 +16,7 @@ export interface DatabaseCredentialParameterNames {
     name: string;
     secretName: string;
   };
+  adminUsername: string;
 }
 
 /**
@@ -42,4 +43,5 @@ export interface ResolvedDatabaseCredentials {
   loginSecretName: string;
   appUserName: string;
   appUserSecretName: string;
+  adminUsername: string; 
 }

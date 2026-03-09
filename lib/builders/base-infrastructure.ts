@@ -5,7 +5,19 @@ import { BaseInfrastructureBuilderProps } from '../interfaces/base-infrastructur
 import { Network } from '../constructs/network';
 import { RdsBastion } from '../constructs/bastion';
 import { RdsBastionConfigBuilder } from './rds-bastion';
-import { getExportedValueName } from '../config/environment';
+import {
+  getExportedValueName,
+  getResourceParameterConfig,
+  ResourceConfigFacade,
+  Stage,
+} from '../config/environment';
+import { Rds } from '../constructs/rds';
+import { Definition } from 'aws-cdk-lib/aws-appsync';
+import { SecurityGroupConfig } from '../interfaces/common';
+import {
+  IParameterResolver,
+  ResolvedDatabaseCredentials,
+} from '../interfaces/parameter-resolver';
 
 /**
  * BaseInfrastructureBuilder
@@ -24,6 +36,8 @@ export class BaseInfrastructureBuilder {
   private readonly props: Required<BaseInfrastructureBuilderProps>;
   private network?: Network;
   private appClientSg?: ec2.SecurityGroup;
+  private data?: Rds;
+  private bastion?: RdsBastion;
 
   /**
    * BaseInfrastructureBuilder constructor creates a builder that orchestrates
@@ -68,6 +82,7 @@ export class BaseInfrastructureBuilder {
     const bastionConfig = new RdsBastionConfigBuilder(
       this.scope,
       this.props.rdsBastion,
+      this.props.stage,
       this.network.vpc,
     ).build();
     new RdsBastion(this.scope, `${this.idPrefix}-RdsBastion`, {
@@ -79,7 +94,6 @@ export class BaseInfrastructureBuilder {
 
   /**
    * Adds a security group for application clients that need access to the network.
-   * @returns The current instance of BaseInfrastructureBuilder for chaining.
    */
   public withAppClientSecurityGroup(): this {
     if (!this.network)
@@ -97,11 +111,71 @@ export class BaseInfrastructureBuilder {
   }
 
   /**
+   * Adds an RDS cluster and related resources to the builder.
+   * The security group has two seats - one for the bastion and one for an app client.
+   */
+  public withRds(): this {
+    if (!this.props.rds)
+      throw new Error('withRds is called with rds property not configured.');
+    if (!this.network) throw new Error('Call withNetwork() before withRds().');
+    if (!this.bastion) throw new Error('Call withBastion() before withRds().');
+    if (!this.appClientSg)
+      throw new Error('Call withAppClientSecurityGroup() before withRds().');
+    const bastionSecGrpConfig: SecurityGroupConfig = {
+      portRules: this.props.rdsBastion.securityGroupPorts,
+      definition: this.bastion.securityGroup,
+    };
+    const appClientSecurityGroup: SecurityGroupConfig = {
+      portRules: this.props.rds.portRules,
+      definition: this.appClientSg,
+    };
+    const dbCredentials = this.getRdsClusterConfig(
+      this.props.rds.parameterResolver,
+      this.props.stage,
+    );
+    const clusterConfig = {
+      name: this.props.rds.name,
+      id: this.props.rds.id,
+      databaseName: this.props.rds.databaseName,
+      deletionProtection: this.props.rds.deletionProtection,
+      admin: {
+        username: dbCredentials.adminUsername,
+        secretName: dbCredentials.loginSecretName,
+      },
+      app: {
+        username: dbCredentials.appUserName,
+        secretName: dbCredentials.appUserSecretName,
+      },
+    };
+
+    this.data = new Rds(this.scope, `${this.idPrefix}-Data`, {
+      vpc: this.network.vpc,
+      secGrpConfigs: [bastionSecGrpConfig, appClientSecurityGroup],
+      clusterConfig,
+      ...this.props.rds,
+    });
+
+    return this;
+  }
+
+  private getRdsClusterConfig(
+    parameterResolver: IParameterResolver,
+    stage: Stage,
+  ): ResolvedDatabaseCredentials {
+    const resourceConfig = new ResourceConfigFacade(
+      parameterResolver,
+      getResourceParameterConfig(stage),
+    );
+    return resourceConfig.getDatabaseCredentials();
+  }
+
+  /**
    * Optional: define CDK outputs in one place.
    */
   public outputs(): this {
     if (!this.network) throw new Error('Call withNetwork() before outputs().');
-    if(!this.appClientSg) throw new Error('Call withAppClientSecurityGroup() before outputs().');
+    if (!this.appClientSg)
+      throw new Error('Call withAppClientSecurityGroup() before outputs().');
     if (getExportedValueName().network) {
       new cdk.CfnOutput(this.scope, 'VpcId', {
         value: this.network.vpc.vpcId,
