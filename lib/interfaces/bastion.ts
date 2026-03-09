@@ -14,7 +14,6 @@ export interface BastionPortRule {
 export interface BastionSecurityGroupConfig {
   ports: BastionPortRule[];
   definition: ec2.SecurityGroup;
-  ingressRuleDescription: string;
 }
 
 export interface BastionInstanceConfig {

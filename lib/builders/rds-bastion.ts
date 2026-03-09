@@ -62,7 +62,7 @@ export class RdsBastionConfigBuilder {
   private createBastionSecurityGroup(): ec2.SecurityGroup {
     return new ec2.SecurityGroup(this.scope, 'BastionSecurityGroup', {
       vpc: this.vpc,
-      description: 'Security group for RDS bastion host',
+      description: 'Security group for bastion host',
     });
   }
 
@@ -71,8 +71,7 @@ export class RdsBastionConfigBuilder {
   ): BastionSecurityGroupConfig {
     return {
       ports: this.props.securityGroupPorts,
-      definition: securityGroup,
-      ingressRuleDescription: 'Allow outbound access to databases',
+      definition: securityGroup
     };
   }
 }

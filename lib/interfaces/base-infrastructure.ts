@@ -2,8 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { InterfaceVpcEndpointAwsService } from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import { BastionSecurityGroupConfig, RdsBastionConfigBuilderProps } from './bastion';
+import {RdsBastionConfigBuilderProps } from './bastion';
 import { Stage } from '../config/environment';
 
 
@@ -60,16 +59,3 @@ export type NETWORK_CONFIG = {
   cidrMaskPrivate: number;
   idPrefix: string;
 }   
-
-
-
-export type RDS_BASTION_CONFIG = {
-  userDataCommands?: string[];
-  subnetSelection: ec2.SubnetSelection;
-  instance: {
-    type: ec2.InstanceType;
-    ami: ec2.IMachineImage;
-  };
-  securityGroupPorts: BastionSecurityGroupConfig['ports'];
-
-}; 

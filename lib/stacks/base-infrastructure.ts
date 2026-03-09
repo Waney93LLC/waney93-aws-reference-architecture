@@ -140,7 +140,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
       securityGroupPorts: [
         {
           port: ec2.Port.tcp(5432),
-          description: 'PostgreSQL access',
+          description: 'Allow outbound access to databases',
         },
       ],
       migrationOps,

@@ -1,5 +1,5 @@
 import { MigrationOperations } from '../../interfaces/bastion';
-import { SharedServicesStack } from '../../stacks/shared-services';
+
 
 /**
  * This is an S3 compatible migration script template. It will download the migration configuration and assets from S3, then execute the migration process.

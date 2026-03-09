@@ -39,7 +39,7 @@ export class RdsBastion extends Construct {
       this.securityGroup.addEgressRule(
         ec2.Peer.anyIpv4(),
         port,
-        description ?? bastionSecGrpConfig.ingressRuleDescription,
+        description ,
       );
     }
 
