@@ -35,7 +35,7 @@ export class RdsBastion extends Construct {
 
     this.securityGroup = bastionSecGrpConfig.definition;
 
-    for (const { port, description } of bastionSecGrpConfig.ports) {
+    for (const { port, description } of bastionSecGrpConfig.portRules) {
       this.securityGroup.addEgressRule(
         ec2.Peer.anyIpv4(),
         port,
