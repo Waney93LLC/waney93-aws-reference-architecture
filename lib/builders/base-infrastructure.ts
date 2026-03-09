@@ -5,6 +5,7 @@ import { BaseInfrastructureBuilderProps } from '../interfaces/base-infrastructur
 import { Network } from '../constructs/network';
 import { RdsBastion } from '../constructs/bastion';
 import { RdsBastionConfigBuilder } from './rds-bastion';
+import { getExportedValueName } from '../config/environment';
 
 /**
  * BaseInfrastructureBuilder
@@ -100,11 +101,19 @@ export class BaseInfrastructureBuilder {
    */
   public outputs(): this {
     if (!this.network) throw new Error('Call withNetwork() before outputs().');
-    new cdk.CfnOutput(this.scope, 'VpcId', {
-      value: this.network.vpc.vpcId,
-      exportName: 'networkid',
-    });
-
+    if(!this.appClientSg) throw new Error('Call withAppClientSecurityGroup() before outputs().');
+    if (getExportedValueName().network) {
+      new cdk.CfnOutput(this.scope, 'VpcId', {
+        value: this.network.vpc.vpcId,
+        exportName: getExportedValueName().network?.vpcId,
+      });
+    }
+    if (getExportedValueName().network) {
+      new cdk.CfnOutput(this.scope, 'AppClientSgId', {
+        value: this.appClientSg.securityGroupId,
+        exportName: getExportedValueName().network?.appClientSgId,
+      });
+    }
     return this;
   }
 }

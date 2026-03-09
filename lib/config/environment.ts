@@ -17,6 +17,13 @@ export interface EnvironmentConfig {
   };
 }
 
+export type CfnOutputExportNames ={
+  network?:{
+    vpcId?: string;
+    appClientSgId?: string;
+  }
+}
+
 const REPO = {
   owner: 'Waney93LLC',
   name: 'waney93-aws-reference-architecture',
@@ -94,4 +101,15 @@ export class ResourceConfigFacade {
   public getMigrationScriptConfig(): MigrationScriptConfig {
     return this.config.migration;
   }
+}
+
+
+export function getExportedValueName(): CfnOutputExportNames {
+
+  return {
+    network: {
+      vpcId: 'networkid',
+      appClientSgId: 'appClientSgId',
+    },
+  };
 }
