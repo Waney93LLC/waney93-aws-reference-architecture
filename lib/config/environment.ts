@@ -1,3 +1,5 @@
+import { IParameterResolver, MigrationScriptConfig, ResolvedDatabaseCredentials, ResourceParameterConfig } from '../interfaces/parameter-resolver';
+
 export type Stage = 'dev' | 'test' | 'prod';
 
 export interface EnvironmentConfig {
@@ -48,4 +50,48 @@ export function getEnvConfig(stage: Stage): EnvironmentConfig {
       skip_foundations: stage === 'prod',
     },
   };
+}
+
+export function getResourceParameterConfig(
+  stage: Stage,
+): ResourceParameterConfig {
+  return {
+    databaseCredentials: {
+      loginSecretName: `/waney93/${stage}/aurora/secret-name`,
+      appUser: {
+        name: `/waney93/${stage}/app-user-name`,
+        secretName: `/waney93/${stage}/aurora/app-user-secret-name`,
+      },
+    },
+    migration: {
+      folderPath: `/waney93/${stage}/migration-scripts/`,
+      entryFile: 'migration-config.json',
+      description: 'Migration script for on-prem to RDS migration',
+    },
+  };
+}
+
+export class ResourceConfigFacade {
+  constructor(
+    private readonly resolver: IParameterResolver,
+    private readonly config: ResourceParameterConfig,
+  ) {}
+
+  public getDatabaseCredentials(): ResolvedDatabaseCredentials {
+    return {
+      loginSecretName: this.resolver.getString(
+        this.config.databaseCredentials.loginSecretName,
+      ),
+      appUserName: this.resolver.getString(
+        this.config.databaseCredentials.appUser.name,
+      ),
+      appUserSecretName: this.resolver.getString(
+        this.config.databaseCredentials.appUser.secretName,
+      ),
+    };
+  }
+
+  public getMigrationScriptConfig(): MigrationScriptConfig {
+    return this.config.migration;
+  }
 }

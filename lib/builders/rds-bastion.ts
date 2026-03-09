@@ -1,28 +1,66 @@
-
 import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { BastionBaseConfig, BastionInstanceConfig, BastionSecurityGroupConfig, RdsBastionConfigBuilderProps} from '../interfaces/bastion';
-
-
+import {
+  BastionBaseConfig,
+  BastionInstanceConfig,
+  BastionSecurityGroupConfig,
+  MigrationDatabaseCredentials,
+  MigrationOperations,
+  RdsBastionConfig,
+} from '../interfaces/bastion';
+import {
+  getResourceParameterConfig,
+  ResourceConfigFacade,
+} from '../config/environment';
 
 export class RdsBastionConfigBuilder {
   constructor(
     private readonly scope: Construct,
-    private readonly props: RdsBastionConfigBuilderProps,
-    private readonly vpc: ec2.IVpc
+    private readonly props: RdsBastionConfig,
+    private readonly vpc: ec2.IVpc,
   ) {}
 
   public build(): BastionBaseConfig {
     const userData = this.createUserData();
     const role = this.createBastionRole();
     const securityGroup = this.createBastionSecurityGroup();
+    const resourceConfig = new ResourceConfigFacade(
+      this.props.parameterResolver,
+      getResourceParameterConfig(this.props.stage),
+    );
 
     return {
       subnetSelection: this.props.subnetSelection,
       bastionConfig: this.createBastionInstanceConfig(userData, role),
-      migrationOps: this.props.migrationOps,
+      migrationOps: this.getMigrationOpsConfig(resourceConfig),
       bastionSecGrpConfig: this.createSecurityGroupConfig(securityGroup),
+    };
+  }
+
+  private getMigrationOpsConfig(
+    resourceConfig: ResourceConfigFacade,
+  ): MigrationOperations {
+    const dbCreds = resourceConfig.getDatabaseCredentials();
+    const migration = resourceConfig.getMigrationScriptConfig();
+    const dbCredentials: MigrationDatabaseCredentials = {
+      loginSecretName: dbCreds.loginSecretName,
+      appUser: {
+        name: dbCreds.appUserName,
+        secretName: dbCreds.appUserSecretName,
+      },
+    };
+
+    return {
+      config: {
+        ...this.props.config,
+        script: {
+          folderPath: migration.folderPath,
+          entryFile: migration.entryFile,
+          description: migration.description,
+        },
+      },
+      databaseCredentials: dbCredentials,
     };
   }
 
@@ -71,7 +109,7 @@ export class RdsBastionConfigBuilder {
   ): BastionSecurityGroupConfig {
     return {
       ports: this.props.securityGroupPorts,
-      definition: securityGroup
+      definition: securityGroup,
     };
   }
 }

@@ -4,6 +4,8 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import { MIGRATION_OPS_CONFIG } from './shared-services';
+import { IParameterResolver } from './parameter-resolver';
+import { Stage } from '../config/environment';
 
 
 export interface BastionPortRule {
@@ -50,9 +52,7 @@ export interface BastionConfig extends BastionBaseConfig {
   vpc: ec2.IVpc;
 }
 
-
-
-export interface RdsBastionConfigBuilderProps {
+export interface RdsBastionConfig {
   userDataCommands?: string[];
   subnetSelection?: ec2.SubnetSelection;
   instance: {
@@ -60,33 +60,7 @@ export interface RdsBastionConfigBuilderProps {
     ami: ec2.IMachineImage;
   };
   securityGroupPorts: BastionPortRule[];
-  migrationOps: MigrationOperations;
-}
-
-
-export interface BootstrapAutomationStackProps extends cdk.StackProps {
-  /**
-   * The CloudFormation stack name that represents your Foundations stack
-   * Example: "devStage-Foundations" (whatever the actual stack name is in CFN)
-   */
-  readonly targetStackName: string;
-
-  /**
-   * Tag key/value used to identify the bastion (or bootstrap runner) instance.
-   * Example: Key="Role", Value="Bastion"
-   */
-  readonly targetInstanceTagKey: string;
-  readonly targetInstanceTagValue: string;
-
-  /**
-   * Your existing Run Command document name (already created elsewhere).
-   * Example: "BastionMigrationDoc"
-   */
-  readonly runCommandDocumentName: string;
-
-  /**
-   * Optional: automation runbook name (SSM document name).
-   * Defaults to "RunBootstrapOnFoundationCreate"
-   */
-  readonly automationRunbookName?: string;
+  parameterResolver: IParameterResolver;
+  stage: Stage;
+  config: MIGRATION_OPS_CONFIG;
 }

@@ -2,7 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { InterfaceVpcEndpointAwsService } from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import {RdsBastionConfigBuilderProps } from './bastion';
+import {RdsBastionConfig } from './bastion';
 import { Stage } from '../config/environment';
 
 
@@ -16,7 +16,7 @@ import { Stage } from '../config/environment';
 export interface BaseInfrastructureProps {
   stage: string;
   network: NETWORK_CONFIG;
-  rdsBastion?: RdsBastionConfigBuilderProps;
+  rdsBastion?: RdsBastionConfig;
 }
 
 /**

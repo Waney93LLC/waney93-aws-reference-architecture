@@ -11,15 +11,11 @@ import {
 } from '../interfaces/base-infrastructure';
 import { BaseInfrastructureBuilder } from '../builders/base-infrastructure';
 import {
-  MigrationOperations,
-  RdsBastionConfigBuilderProps,
+  RdsBastionConfig,
 } from '../interfaces/bastion';
 import { SharedServicesStack } from './shared-services';
-import {
-  getDatabaseMigrationParameterConfig,
-  getScriptMigrationParameterConfig,
-} from '../config/migrations/templates';
 import { Stage } from '../config/environment';
+import { SsmParameterResolver } from '../config/ssm-parameter-resolver';
 
 /**
  * BaseInfrastructureStack
@@ -69,62 +65,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
     };
   }
 
-  static getBastionConfig(
-    stage: Stage,
-    scope: Construct,
-  ): RdsBastionConfigBuilderProps {
-    const Params = {
-      config: {
-        script: getScriptMigrationParameterConfig(stage),
-      },
-      databaseCredentials: getDatabaseMigrationParameterConfig(stage),
-    };
-
-    const loginSecretName = ssm.StringParameter.valueForStringParameter(
-      scope,
-      Params.databaseCredentials.loginSecretName,
-    );
-    const appUserName = ssm.StringParameter.valueForStringParameter(
-      scope,
-      Params.databaseCredentials.appUser.name,
-    );
-    const appUserSecret = ssm.StringParameter.valueForStringParameter(
-      scope,
-      Params.databaseCredentials.appUser.secretName,
-    );
-    if(!Params.config.script){
-      throw new Error('Script migration config is required to create RdsBastion construct.');
-    }
-    const folderPath = ssm.StringParameter.valueForStringParameter(
-      scope,
-      Params.config.script.folderPath,
-    );
-    const entryFile = ssm.StringParameter.valueForStringParameter(
-      scope,
-      Params.config.script.entryFile,
-    );
-    const description = ssm.StringParameter.valueForStringParameter(
-      scope,
-      Params.config.script.description?? 'Migration script for on-prem to RDS migration',
-    );
-    const migrationOps: MigrationOperations = {
-      config: {
-        ...SharedServicesStack.getMigrationOpsConfig(),
-        script: {
-          folderPath,
-          entryFile,
-          description,
-        },
-      },
-      databaseCredentials: {
-        loginSecretName,
-        appUser: {
-          name: appUserName,
-          secretName: appUserSecret,
-        },
-      },
-    };
-
+  static getBastionConfig(stage: Stage, scope:Construct): RdsBastionConfig {
     return {
       userDataCommands: [
         'set -eux',
@@ -143,7 +84,9 @@ export class BaseInfrastructureStack extends cdk.Stack {
           description: 'Allow outbound access to databases',
         },
       ],
-      migrationOps,
+      config: SharedServicesStack.getMigrationOpsConfig(),
+      stage,
+      parameterResolver: new SsmParameterResolver(scope),
     };
   }
 }

@@ -30,26 +30,3 @@ export const getS3MigrationScriptSteps = (
   'chmod +x $MIGRATION_PROCESS_FILE',
   './$MIGRATION_PROCESS_FILE',
 ];
-
-export const getDatabaseMigrationParameterConfig = (
-  stage: string,
-): MigrationOperations['databaseCredentials'] => {
-  return {
-      loginSecretName: `/waney93/${stage}/aurora/secret-name`,
-      appUser: {
-        name: `/waney93/${stage}/app-user-name`,
-        secretName: `/waney93/${stage}/aurora/app-user-secret-name`,
-      },
-  };
-};
-
-export const getScriptMigrationParameterConfig = (
-  stage: string,
-): MigrationOperations['config']['script'] => {
-  return {
-      folderPath: `waney93/${stage}/migration-scripts/`,
-      entryFile: `migration-config.json`,
-      description: 'Migration script for on-prem to RDS migration',
-
-  };
-};
