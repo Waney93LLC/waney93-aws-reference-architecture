@@ -64,7 +64,7 @@ export function getResourceParameterConfig(
       },
     },
     migration: {
-      folderPath: `/waney93/${stage}/migration-scripts/`,
+      folderPath: `/waney93/${stage}/migration-scripts`,
       entryFile: 'migration-config.json',
       description: 'Migration script for on-prem to RDS migration',
     },
