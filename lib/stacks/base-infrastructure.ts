@@ -39,7 +39,8 @@ export class BaseInfrastructureStack extends cdk.Stack {
     new BaseInfrastructureBuilder(this, 'BaseInfrastructureBuilder', {
       network: BaseInfrastructureStack.getNetworkConfig(this),
       stage: props.stage,
-      rdsBastion: BaseInfrastructureStack.getBastionConfig(props.stage, this),
+      rdsBastion: BaseInfrastructureStack.getBastionConfig(this),
+      rds: BaseInfrastructureStack.getRdsConfig(this),
     })
       .withNetwork()
       .withRdsBastion()
@@ -65,7 +66,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
     };
   }
 
-  static getBastionConfig(stage: Stage, scope: Construct): RdsBastionConfig {
+  static getBastionConfig(scope: Construct): RdsBastionConfig {
     return {
       userDataCommands: [
         'set -eux',
