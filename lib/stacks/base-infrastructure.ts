@@ -42,11 +42,11 @@ export class BaseInfrastructureStack extends cdk.Stack {
       rdsBastion: BaseInfrastructureStack.getBastionConfig(this),
       rds: BaseInfrastructureStack.getRdsConfig(this),
     })
-      .withNetwork()
-      .withRdsBastion()
-      .withAppClientSecurityGroup()
-      .withRds()
-      .outputs();
+      // .withNetwork()
+      // .withRdsBastion()
+      // .withAppClientSecurityGroup()
+      // .withRds()
+      // .outputs();
 
     // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
