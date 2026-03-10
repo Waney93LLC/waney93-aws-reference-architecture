@@ -48,22 +48,22 @@ export class SharedServicesStack extends cdk.Stack {
       oidc: oidcConfig,
       migrationOps: migrationOpsConfig,
       cognito: cognitoConfig,
-      migrationStorage:{
+      migrationStorage: {
         s3Bucket: {
           name: `${this.stackName}-migration-storage`,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
           autoDeleteObjects: true,
           bucketId: 'MigrationStorageBucket',
-        }
-      }
+        },
+      },
     })
       .withEcr()
       .withCiEcrPushRole()
       .withGitHubOidc()
       .withMigrationBootstrap()
-      .withCognito()
-      // .withMigrationStorage()
-      // .outputs();
+      .withMigrationStorage()
+      .withCognito()     
+     .outputs();
     // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
