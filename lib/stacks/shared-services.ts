@@ -50,7 +50,7 @@ export class SharedServicesStack extends cdk.Stack {
       cognito: cognitoConfig,
       migrationStorage: {
         s3Bucket: {
-          name: `${this.stackName}-migration-storage`,
+          name: `${this.stackName.toLocaleLowerCase()}-migration-storage`,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
           autoDeleteObjects: true,
           bucketId: 'MigrationStorageBucket',
