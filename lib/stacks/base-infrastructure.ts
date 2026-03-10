@@ -77,7 +77,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
       subnetSelection: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       instance: {
         type: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.NANO),
-        ami: ec2.MachineImage.latestAmazonLinux2023(),
+        ami: ec2.MachineImage.latestAmazonLinux2023(),  
       },
       securityGroupPorts: [
         {

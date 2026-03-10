@@ -36,14 +36,11 @@ export class RdsBastion extends Construct {
     this.securityGroup = bastionSecGrpConfig.definition;
 
     for (const { port, description } of bastionSecGrpConfig.portRules) {
-      this.securityGroup.addEgressRule(
-        ec2.Peer.anyIpv4(),
-        port,
-        description ,
-      );
+      this.securityGroup.addEgressRule(ec2.Peer.anyIpv4(), port, description);
     }
 
     this.role = bastionConfig.role;
+    const { config } = migrationOps;
 
     // Allow sending SSM command against the custom document (if you create it)
     this.role.addToPrincipalPolicy(
@@ -54,7 +51,7 @@ export class RdsBastion extends Construct {
           'ssm:ListCommandInvocations',
         ],
         resources: [
-          `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:document/${migrationOps.config.runCommandDocumentName}`,
+          `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:document/${config.runCommandDocumentName}`,
         ],
       }),
     );
@@ -75,10 +72,10 @@ export class RdsBastion extends Construct {
       detailedMonitoring: true,
       userData: bastionConfig.userData,
     });
-
+    const { target } = migrationOps.config;
     cdk.Tags.of(this.instance).add(
-      'Name',
-      `${cdk.Stack.of(this).stackName}-host`,
+      target.instance.tagKey,
+      target.instance.tagValue,
     );
   }
 
@@ -95,27 +92,28 @@ export class RdsBastion extends Construct {
     migrationOps: MigrationOperations,
   ): ssm.CfnDocument {
     s3BucketOps.grantReadWrite(bastionRole);
-    if (!migrationOps.config.script) {
+    const { config } = migrationOps;
+    if (!config.script) {
       throw new Error(
         'Migration script configuration is required to create migration SSM Document',
       );
     }
     const migrationSteps = getS3MigrationScriptSteps(
-      `s3://${s3BucketOps.bucketName}/${migrationOps.config.script.folderPath}`,
-      migrationOps.config.script.entryFile,
+      `s3://${s3BucketOps.bucketName}/${config.script.folderPath}`,
+      config.script.entryFile,
     );
     return new ssm.CfnDocument(this, 'BastionMigrationDoc', {
-      name: migrationOps.config.runCommandDocumentName,
+      name: config.runCommandDocumentName,
       documentType: 'Command',
       content: {
         schemaVersion: '2.2',
         description:
-          migrationOps.config.script.description ||
+          config.script.description ||
           'SSM Document to run migration scripts on the bastion host',
         mainSteps: [
           {
             action: 'aws:runShellScript',
-            name: migrationOps.config.automationRunbookName,
+            name: config.automationRunbookName,
             inputs: { runCommand: migrationSteps },
           },
         ],
