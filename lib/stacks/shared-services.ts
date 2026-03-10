@@ -54,6 +54,7 @@ export class SharedServicesStack extends cdk.Stack {
       .withGitHubOidc()
       .withMigrationBootstrap()
       .withCognito()
+      .withMigrationStorage()
       .outputs();
     // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');

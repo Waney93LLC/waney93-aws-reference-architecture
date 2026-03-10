@@ -16,6 +16,7 @@ export interface SharedServicesProps {
   oidc?: OIDC_CONFIG;
   migrationOps?: MIGRATION_OPS_CONFIG;
   cognito?: COGNITO_CONFIG;
+  migrationStorage?: MIGRATION_STORAGE_CONFIG;
   
 }
 
@@ -28,6 +29,33 @@ export interface SharedServicesProps {
  */
 export interface SharedServicesBuilderProps extends SharedServicesProps {
  
+}
+/**
+ * S3StorageConstructProps
+ *
+ * Purpose:
+ *   Properties for configuring the S3StorageConstruct, which defines resources related to S3 storage, such as S3 buckets.
+ */
+export interface S3StorageConstructProps {
+  name: string;
+  removalPolicy: cdk.RemovalPolicy;
+  autoDeleteObjects: boolean;
+  bucketId: string;
+  enforceSSL?: boolean;
+  versioned?: boolean;
+  encryption?: cdk.aws_s3.BucketEncryption;
+}
+
+/**
+ * DynamoDBTableConstructProps
+ *
+ * Purpose:
+ *   Properties for configuring a DynamoDB table construct, which defines resources related to DynamoDB tables used in migration storage.
+ */
+export interface DynamoDBTableConstructProps {
+  name: string;
+  removalPolicy: cdk.RemovalPolicy;
+  tableId: string;
 }
 
 export type ECR_CONFIG = {
@@ -90,6 +118,18 @@ export type COGNITO_CONFIG = {
   userPoolSelfSignUpEnabled: boolean;
   allowUsernameSignIn: boolean;
   removalPolicy: cdk.RemovalPolicy;
+};
+
+/**
+ * MIGRATION_STORAGE_CONFIG
+ *
+ * Purpose:
+ *   Configuration for migration storage resources, such as S3 buckets or DynamoDB tables, used in migration operations.
+ *   This can include bucket names, table names, and any relevant settings for those resources.
+ */
+export type MIGRATION_STORAGE_CONFIG = {
+  s3Bucket: S3StorageConstructProps;
+  dynamoDBTable: DynamoDBTableConstructProps;
 };
 
 /**

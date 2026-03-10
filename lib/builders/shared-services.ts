@@ -13,6 +13,7 @@ import { OpsRunbookConstruct } from '../constructs/ops-runbook';
 import { CognitoConstruct } from '../constructs/cognito/cognito-construct';
 import { CognitoUserPoolConstruct } from '../constructs/cognito/cognito-userpool-constructs';
 import { CognitoSecretsConstruct } from '../constructs/cognito/cognito-secrets-constructs';
+import { S3StorageConstruct } from '../constructs/s3storage';
 
 /**
  * SharedServicesBuilder
@@ -212,7 +213,12 @@ export class SharedServicesBuilder {
    * @returns this
    */
   public withMigrationStorage(): this {
-    
+    if(!this.props.migrationStorage) {
+      throw new Error(
+        'Migration Storage configuration is required to create migration storage resources',
+      );
+    }
+    new S3StorageConstruct(this.scope, 'MigrationStorageBucket', this.props.migrationStorage.s3Bucket);  
     return this;
   }
 
