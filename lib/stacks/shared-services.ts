@@ -50,7 +50,7 @@ export class SharedServicesStack extends cdk.Stack {
       cognito: cognitoConfig,
       migrationStorage:{
         s3Bucket: {
-          name: `${props.stackName}-migration-storage`,
+          name: `${this.stackName}-migration-storage`,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
           autoDeleteObjects: true,
           bucketId: 'MigrationStorageBucket',
@@ -62,8 +62,8 @@ export class SharedServicesStack extends cdk.Stack {
       .withGitHubOidc()
       .withMigrationBootstrap()
       .withCognito()
-      .withMigrationStorage()
-      .outputs();
+      // .withMigrationStorage()
+      // .outputs();
     // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
