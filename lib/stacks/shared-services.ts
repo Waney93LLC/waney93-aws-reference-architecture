@@ -57,13 +57,13 @@ export class SharedServicesStack extends cdk.Stack {
         },
       },
     })
-      .withEcr()
-      .withCiEcrPushRole()
-      .withGitHubOidc()
-      .withMigrationBootstrap()
-      .withMigrationStorage()
-      .withCognito()     
-     .outputs();
+    //   .withEcr()
+    //   .withCiEcrPushRole()
+    //   .withGitHubOidc()
+    //   .withMigrationBootstrap()
+    //   .withMigrationStorage()
+    //   .withCognito()     
+    //  .outputs();
     // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
