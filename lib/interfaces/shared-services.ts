@@ -95,9 +95,6 @@ export type MIGRATION_OPS_CONFIG = {
       tagKey: string;
       tagValue: string;
     };
-    stack: {
-      name?: string;
-    };
   };
   script?: {
     folderPath: string;

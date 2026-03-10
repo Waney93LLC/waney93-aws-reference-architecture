@@ -137,13 +137,14 @@ export class OpsRunbookConstruct extends Construct {
       RunCommandDocumentName: [runCommandDocumentName],
     };
 
+    const triggeredStackName = cdk.Stack.of(this).stackName; 
     const eventPattern: events.EventPattern = {
       source: ['aws.cloudformation'],
       detailType: ['CloudFormation Stack Status Change'],
       detail: {
         'stack-id': [
           {
-            prefix: `arn:aws:cloudformation:${region}:${account}:stack/${target.stack.name}/`,
+            prefix: `arn:aws:cloudformation:${region}:${account}:stack/${triggeredStackName}/`,
           },
         ],
         'status-details': {
