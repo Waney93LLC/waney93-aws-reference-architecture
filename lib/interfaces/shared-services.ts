@@ -20,15 +20,6 @@ export interface SharedServicesProps {
 }
 
 /**
- * SharedServicesConstructProps
- *
- * Purpose:
- *   Properties required by SharedServicesConstruct. Typically a normalized subset
- *   of SharedServicesProps.
- */
-export interface SharedServicesConstructProps {}
-
-/**
  * SharedServicesBuilderProps
  *
  * Purpose:
