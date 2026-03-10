@@ -148,7 +148,7 @@ export class OpsRunbookConstruct extends Construct {
           },
         ],
         'status-details': {
-          status: ['CREATE_COMPLETE'],
+          status: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
         },
       },
     };
