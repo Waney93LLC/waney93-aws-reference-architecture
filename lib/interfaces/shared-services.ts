@@ -128,8 +128,8 @@ export type COGNITO_CONFIG = {
  *   This can include bucket names, table names, and any relevant settings for those resources.
  */
 export type MIGRATION_STORAGE_CONFIG = {
-  s3Bucket: S3StorageConstructProps;
-  dynamoDBTable: DynamoDBTableConstructProps;
+  s3Bucket?: S3StorageConstructProps;
+  dynamoDBTable?: DynamoDBTableConstructProps;
 };
 
 /**

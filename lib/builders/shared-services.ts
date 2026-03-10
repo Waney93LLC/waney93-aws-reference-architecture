@@ -32,10 +32,11 @@ export class SharedServicesBuilder {
   private readonly props: Required<SharedServicesBuilderProps>;
   private repo?: EcrConstruct;
   private ciGithubEcrRoles?: iam.PolicyStatement[];
-  private  userPool?: CognitoUserPoolConstruct;
-  private  domainCert?: acm.ICertificate;
-  private  secrets?: CognitoSecretsConstruct;
+  private userPool?: CognitoUserPoolConstruct;
+  private domainCert?: acm.ICertificate;
+  private secrets?: CognitoSecretsConstruct;
   private migrationOpsRunbook?: OpsRunbookConstruct;
+  private s3Construct?: S3StorageConstruct;
 
   /**
    * SharedServicesBuilder constructor creates a builder that orchestrates
@@ -177,9 +178,13 @@ export class SharedServicesBuilder {
         'Migration Ops configuration is required to create Ops Runbook',
       );
     }
-    this.migrationOpsRunbook = new OpsRunbookConstruct(this.scope, 'MigrationBootstrapRunbook', {
-      migrationOps: this.props.migrationOps,
-    });
+    this.migrationOpsRunbook = new OpsRunbookConstruct(
+      this.scope,
+      'MigrationBootstrapRunbook',
+      {
+        migrationOps: this.props.migrationOps,
+      },
+    );
     return this;
   }
 
@@ -213,12 +218,18 @@ export class SharedServicesBuilder {
    * @returns this
    */
   public withMigrationStorage(): this {
-    if(!this.props.migrationStorage) {
+    if (!this.props.migrationStorage) {
       throw new Error(
         'Migration Storage configuration is required to create migration storage resources',
       );
     }
-    new S3StorageConstruct(this.scope, 'MigrationStorageBucket', this.props.migrationStorage.s3Bucket);  
+    if (this.props.migrationStorage.s3Bucket) {
+      this.s3Construct = new S3StorageConstruct(
+        this.scope,
+        'MigrationStorageBucket',
+        this.props.migrationStorage.s3Bucket,
+      );
+    }
     return this;
   }
 
@@ -226,17 +237,27 @@ export class SharedServicesBuilder {
    * Optional: define CDK outputs in one place.
    */
   public outputs(): this {
-    new cdk.CfnOutput(this.scope, 'cognitoUserPoolId', {
-      value: this.userPool?.userPool.userPoolId || 'undefined',
-      description: 'Cognito User Pool ID',
-      exportName: `${this.idPrefix}-CognitoUserPoolId`,
-    });
-    new cdk.CfnOutput(this.scope, 'cognitoDomainCertArn', {
-      value: this.domainCert?.certificateArn || 'undefined',
-      description: 'Cognito Custom Domain Certificate ARN',
-      exportName: `${this.idPrefix}-CognitoDomainCertArn`,
-    });
- 
+    if (this.userPool) {
+      new cdk.CfnOutput(this.scope, 'cognitoUserPoolId', {
+        value: this.userPool.userPool.userPoolId,
+        description: 'Cognito User Pool ID',
+        exportName: `${this.idPrefix}-CognitoUserPoolId`,
+      });
+    }
+    if(this.domainCert) {
+      new cdk.CfnOutput(this.scope, 'cognitoDomainCertArn', {
+        value: this.domainCert.certificateArn,
+        description: 'Cognito Custom Domain Certificate ARN',
+        exportName: `${this.idPrefix}-CognitoDomainCertArn`,
+      });
+    }
+    if (this.s3Construct) {
+      new cdk.CfnOutput(this.scope, 'migrationStorageBucketArn', {
+        value: this.s3Construct.bucket.bucketArn,
+        description: 'Migration Storage Bucket ARN',
+        exportName: `MigrationStorageBucketArn`,
+      });
+    }
     return this;
   }
 }

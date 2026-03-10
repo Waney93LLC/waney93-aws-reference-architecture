@@ -48,6 +48,14 @@ export class SharedServicesStack extends cdk.Stack {
       oidc: oidcConfig,
       migrationOps: migrationOpsConfig,
       cognito: cognitoConfig,
+      migrationStorage:{
+        s3Bucket: {
+          name: `${props.stackName}-migration-storage`,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+          autoDeleteObjects: true,
+          bucketId: 'MigrationStorageBucket',
+        }
+      }
     })
       .withEcr()
       .withCiEcrPushRole()
