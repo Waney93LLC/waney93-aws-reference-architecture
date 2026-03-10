@@ -184,6 +184,10 @@ export class SharedServicesBuilder {
     return this;
   }
 
+  /**
+   * Adds Cognito resources to the stack, including User Pool, custom domain with certificate, and secrets for user pool credentials.
+   * @returns this
+   */
   public withCognito(): this {
     if (!this.props.cognito) {
       throw new Error(
@@ -204,6 +208,8 @@ export class SharedServicesBuilder {
 
     return this;
   }
+
+  
 
   /**
    * Optional: define CDK outputs in one place.
