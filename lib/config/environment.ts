@@ -1,4 +1,9 @@
-import { IParameterResolver, MigrationScriptConfig, ResolvedDatabaseCredentials, ResourceParameterConfig } from '../interfaces/parameter-resolver';
+import {
+  IParameterResolver,
+  MigrationScriptConfig,
+  ResolvedDatabaseCredentials,
+  ResourceParameterConfig,
+} from '../interfaces/parameter-resolver';
 
 export type Stage = 'dev' | 'test' | 'prod';
 
@@ -17,12 +22,12 @@ export interface EnvironmentConfig {
   };
 }
 
-export type CfnOutputExportNames ={
-  network?:{
+export type CfnOutputExportNames = {
+  network?: {
     vpcId?: string;
     appClientSgId?: string;
-  }
-}
+  };
+};
 
 const REPO = {
   owner: 'Waney93LLC',
@@ -72,9 +77,9 @@ export function getResourceParameterConfig(
       adminUsername: `/waney93/${stage}/aurora/admin-name`,
     },
     migration: {
-      folderPath: `/waney93/${stage}/migration-scripts`,
-      entryFile: 'migration-config.json',
-      description: 'Migration script for on-prem to RDS migration',
+      folderPath: `/waney93/${stage}/migration-scripts/folder`,
+      entryFile: `/waney93/${stage}/migration-scripts/entryfile`,
+      description: `/waney93/${stage}/migration-scripts/description`,
     },
   };
 }
@@ -96,20 +101,22 @@ export class ResourceConfigFacade {
       appUserSecretName: this.resolver.getString(
         this.config.databaseCredentials.appUser.secretName,
       ),
-      adminUsername: this.resolver.getString( 
+      adminUsername: this.resolver.getString(
         this.config.databaseCredentials.adminUsername,
       ),
     };
   }
 
   public getMigrationScriptConfig(): MigrationScriptConfig {
-    return this.config.migration;
+    return {
+      folderPath: this.resolver.getString(this.config.migration.folderPath),
+      entryFile: this.resolver.getString(this.config.migration.entryFile),
+      description: this.resolver.getString(this.config.migration.description),
+    };
   }
 }
 
-
 export function getExportedValueName(): CfnOutputExportNames {
-
   return {
     network: {
       vpcId: 'networkid',
@@ -117,3 +124,8 @@ export function getExportedValueName(): CfnOutputExportNames {
     },
   };
 }
+
+export const RESOURCE_CONFIG = {
+  AUTOMATION_SCHEMA_VERSION: '0.3',
+  SSM_COMMAND_SCHEMA_VERSION: '2.2',
+};

@@ -7,6 +7,7 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { MigrationOperations, BastionConfig } from '../interfaces/bastion';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { getS3MigrationScriptSteps } from '../config/migrations/templates';
+import { RESOURCE_CONFIG } from '../config/environment';
 
 /**
  * Bastion host module (SSM-managed) for accessing RDS in the VPC.
@@ -106,7 +107,7 @@ export class RdsBastion extends Construct {
       name: config.runCommandDocumentName,
       documentType: 'Command',
       content: {
-        schemaVersion: '2.2',
+        schemaVersion: RESOURCE_CONFIG.SSM_COMMAND_SCHEMA_VERSION ,
         description:
           config.script.description ||
           'SSM Document to run migration scripts on the bastion host',

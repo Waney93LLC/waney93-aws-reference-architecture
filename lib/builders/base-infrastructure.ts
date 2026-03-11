@@ -12,7 +12,6 @@ import {
   Stage,
 } from '../config/environment';
 import { Rds } from '../constructs/rds';
-import { Definition } from 'aws-cdk-lib/aws-appsync';
 import { SecurityGroupConfig } from '../interfaces/common';
 import {
   IParameterResolver,
@@ -173,19 +172,16 @@ export class BaseInfrastructureBuilder {
    * Optional: define CDK outputs in one place.
    */
   public outputs(): this {
-    if (!this.network) throw new Error('Call withNetwork() before outputs().');
-    if (!this.appClientSg)
-      throw new Error('Call withAppClientSecurityGroup() before outputs().');
-    if (getExportedValueName().network) {
+    if (this.network) {
       new cdk.CfnOutput(this.scope, 'VpcId', {
         value: this.network.vpc.vpcId,
-        exportName: getExportedValueName().network?.vpcId,
+        exportName: getExportedValueName().network?.vpcId || 'vpc_id',
       });
     }
-    if (getExportedValueName().network) {
+    if (this.appClientSg) {
       new cdk.CfnOutput(this.scope, 'AppClientSgId', {
         value: this.appClientSg.securityGroupId,
-        exportName: getExportedValueName().network?.appClientSgId,
+        exportName: getExportedValueName().network?.appClientSgId || 'app_client_sg_id',
       });
     }
     return this;
