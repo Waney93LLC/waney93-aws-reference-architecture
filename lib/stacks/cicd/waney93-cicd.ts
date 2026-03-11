@@ -85,16 +85,17 @@ export class Waney93CICDStack extends cdk.Stack {
     //
     // Because these resources establish long-lived infrastructure for the
     // environment, a manual approval step is required before execution.
-    const foundationsWave = pipelineConstruct.pipeline.addWave(
-      `${stage}-Foundations`,
-      {
-        pre: [
-          new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
-            comment: 'Approve deployment of the first wave.',
-          }),
-        ],
-      },
-    );
+    // const foundationsWave = pipelineConstruct.pipeline.addWave(
+    //   `${stage}-Foundations`,
+    //   {
+    //     pre: [
+    //       new cdk.pipelines.ManualApprovalStep('Approve-first-wave', {
+    //         comment: 'Approve deployment of the first wave.',
+    //       }),
+    //     ],
+    //   },
+    // );
+    const foundationsWave = pipelineConstruct.pipeline.addWave(`${stage}-Foundations`);
     const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
       env: env,
       pipelineName: pipeline.name,
