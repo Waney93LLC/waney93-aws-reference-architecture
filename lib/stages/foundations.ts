@@ -48,6 +48,6 @@ export class FoundationsStage extends cdk.Stage {
       },
     );
 
-    infrastructureStack.addDependency(sharedServicesStack);
+    infrastructureStack.addDependency(sharedServicesStack,'Ensure SharedServicesStack is deployed before BaseInfrastructureStack.');
   }
 }
