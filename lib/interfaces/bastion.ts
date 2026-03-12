@@ -36,7 +36,6 @@ export interface MigrationOperations {
 export interface BastionBaseConfig {
   subnetSelection?: ec2.SubnetSelection;
   bastionConfig: BastionInstanceConfig;
-  s3BucketOps?: IBucket;
   migrationOps: MigrationOperations;
   bastionSecGrpConfig: SecurityGroupConfig;
 }

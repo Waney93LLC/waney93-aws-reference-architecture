@@ -185,4 +185,5 @@ export interface Waney93CicdObservabilityStackProps extends cdk.StackProps {
 
 export interface OpsRunbookConstructProps {
   migrationOps?: MIGRATION_OPS_CONFIG;
+  bucketName?: string;
 }

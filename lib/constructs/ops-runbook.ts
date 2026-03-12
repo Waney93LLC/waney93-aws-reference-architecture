@@ -3,10 +3,11 @@ import { Construct } from 'constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as events from 'aws-cdk-lib/aws-events';
-import {RESOURCE_CONFIG} from '../config/environment';
-import { OpsRunbookConstructProps } from '../interfaces/shared-services'; 
-import { EventRouter } from '../constructs/event-router'; 
-import { SsmAutomationTarget } from '../constructs/ssm-automation-target'; 
+import { RESOURCE_CONFIG } from '../config/environment';
+import { OpsRunbookConstructProps } from '../interfaces/shared-services';
+import { EventRouter } from '../constructs/event-router';
+import { SsmAutomationTarget } from '../constructs/ssm-automation-target';
+import { getS3MigrationScriptSteps } from '../config/migrations/templates';
 
 export class OpsRunbookConstruct extends Construct {
   public readonly runbookName: string;
@@ -27,7 +28,7 @@ export class OpsRunbookConstruct extends Construct {
         'migrationOps config is required for OpsRunbookConstruct',
       );
     }
-    const { target, runCommandDocumentName, automationRunbookName } =
+    const { target, runCommandDocumentName, automationRunbookName, script } =
       props.migrationOps;
 
     this.runbookName =
@@ -129,6 +130,33 @@ export class OpsRunbookConstruct extends Construct {
     );
 
     const automationDefinitionArn = `arn:aws:ssm:${region}:${account}:automation-definition/${this.runbookName}`;
+    if (!props.bucketName || !script) {
+      throw new Error(
+        'Either bucketName or script configuration must be provided for OpsRunbookConstruct',
+      );
+    }
+    const migrationSteps = getS3MigrationScriptSteps(
+      `s3://${props.bucketName}/${script.folderPath}`,
+      script.entryFile,
+    );
+
+    new ssm.CfnDocument(this, 'BastionMigrationDoc', {
+      name: runCommandDocumentName,
+      documentType: 'Command',
+      content: {
+        schemaVersion: RESOURCE_CONFIG.SSM_COMMAND_SCHEMA_VERSION,
+        description:
+          script?.description ||
+          'SSM Document to run migration scripts on the bastion host',
+        mainSteps: [
+          {
+            action: 'aws:runShellScript',
+            name: automationRunbookName,
+            inputs: { runCommand: migrationSteps },
+          },
+        ],
+      },
+    });
 
     const targetInput: Record<string, string[]> = {
       AutomationAssumeRole: [this.automationRole.roleArn],
@@ -137,7 +165,7 @@ export class OpsRunbookConstruct extends Construct {
       RunCommandDocumentName: [runCommandDocumentName],
     };
 
-    const triggeredStackName = cdk.Stack.of(this).stackName; 
+    const triggeredStackName = cdk.Stack.of(this).stackName;
     const eventPattern: events.EventPattern = {
       source: ['aws.cloudformation'],
       detailType: ['CloudFormation Stack Status Change'],

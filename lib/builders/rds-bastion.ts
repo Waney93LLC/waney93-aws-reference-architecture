@@ -40,7 +40,6 @@ export class RdsBastionConfigBuilder {
       bastionConfig: this.createBastionInstanceConfig(userData, role),
       migrationOps: this.getMigrationOpsConfig(resourceConfig),
       bastionSecGrpConfig: this.createSecurityGroupConfig(securityGroup),
-      s3BucketOps: this.getMigrationStorage(),
     };
   }
 
@@ -68,17 +67,6 @@ export class RdsBastionConfigBuilder {
       },
       databaseCredentials: dbCredentials,
     };
-  }
-
-  private getMigrationStorage(): IBucket {
-    const bucketArn = cdk.Fn.importValue(
-      `MigrationStorageBucketArn`,
-    );
-    return aws_s3.Bucket.fromBucketArn(
-      this.scope,
-      'MigrationS3Bucket',
-      bucketArn,
-    );
   }
 
   private createUserData(): ec2.UserData {

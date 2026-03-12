@@ -27,6 +27,9 @@ export type CfnOutputExportNames = {
     vpcId?: string;
     appClientSgId?: string;
   };
+  storage?:{
+    migrationStorageBucketArn?: string;
+  }
 };
 
 const REPO = {
@@ -121,6 +124,9 @@ export function getExportedValueName(): CfnOutputExportNames {
     network: {
       vpcId: 'networkid',
       appClientSgId: 'appClientSgId',
+    },
+    storage: {
+      migrationStorageBucketArn: 'MigrationStorageBucketArn',
     },
   };
 }

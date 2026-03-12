@@ -14,6 +14,7 @@ import { CognitoConstruct } from '../constructs/cognito/cognito-construct';
 import { CognitoUserPoolConstruct } from '../constructs/cognito/cognito-userpool-constructs';
 import { CognitoSecretsConstruct } from '../constructs/cognito/cognito-secrets-constructs';
 import { S3StorageConstruct } from '../constructs/s3storage';
+import { getExportedValueName } from '../config/environment';
 
 /**
  * SharedServicesBuilder
@@ -183,6 +184,7 @@ export class SharedServicesBuilder {
       'MigrationBootstrapRunbook',
       {
         migrationOps: this.props.migrationOps,
+        bucketName: this.props.migrationStorage?.s3Bucket?.name,
       },
     );
     return this;
@@ -255,7 +257,7 @@ export class SharedServicesBuilder {
       new cdk.CfnOutput(this.scope, 'migrationStorageBucketArn', {
         value: this.s3Construct.bucket.bucketArn,
         description: 'Migration Storage Bucket ARN',
-        exportName: `MigrationStorageBucketArn`,
+        exportName: getExportedValueName().storage?.migrationStorageBucketArn || `${this.idPrefix}-MigrationStorageBucketArn`,
       });
     }
     return this;
