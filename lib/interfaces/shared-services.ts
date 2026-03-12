@@ -138,6 +138,7 @@ export type MIGRATION_STORAGE_CONFIG = {
 export interface SharedServicesStackProps extends cdk.StackProps {
   pipelineName?: string;
   acmCertificateArnName?: string;
+  stage: Stage;
 }
 
 /**

@@ -10,6 +10,8 @@ import {
   SharedServicesStackProps,
 } from '../interfaces/shared-services';
 import { SharedServicesBuilder } from '../builders/shared-services';
+import { getResourceParameterConfig, ResourceConfigFacade, Stage } from '../config/environment';
+import { SsmParameterResolver } from '../config/ssm-parameter-resolver';
 
 /**
  * SharedServicesStack
@@ -31,7 +33,7 @@ export class SharedServicesStack extends cdk.Stack {
     const oidcConfig: OIDC_CONFIG = SharedServicesStack.getOidcConfig();
     let migrationOpsConfig: MIGRATION_OPS_CONFIG | undefined;
     if (props.pipelineName) {
-      migrationOpsConfig = SharedServicesStack.getMigrationOpsConfig( );
+      migrationOpsConfig = SharedServicesStack.getMigrationOpsConfig(this, props.stage);
     }
     let cognitoConfig: COGNITO_CONFIG | undefined;
     if (props.acmCertificateArnName) {
@@ -110,7 +112,11 @@ export class SharedServicesStack extends cdk.Stack {
     };
   }
 
-  static getMigrationOpsConfig(): MIGRATION_OPS_CONFIG {
+  static getMigrationOpsConfig(scope: Construct, stage: Stage): MIGRATION_OPS_CONFIG {
+    const resourceConfig = new ResourceConfigFacade(
+          new SsmParameterResolver(scope),
+          getResourceParameterConfig(stage),
+        );
     return {
       automationRunbookName: 'RunMigrationBootstrap',
       runCommandDocumentName: 'BastionMigrationDocument',
@@ -118,7 +124,12 @@ export class SharedServicesStack extends cdk.Stack {
         instance: {
           tagKey: 'Name',
           tagValue: 'waney93-bastion',
-        }
+        },
+      },
+      script: {
+        folderPath:   resourceConfig.getMigrationScriptConfig().folderPath,
+        entryFile: resourceConfig.getMigrationScriptConfig().entryFile,
+        description:  resourceConfig.getMigrationScriptConfig().description,
       },
     };
   }

@@ -39,7 +39,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
     new BaseInfrastructureBuilder(this, 'BaseInfrastructureBuilder', {
       network: BaseInfrastructureStack.getNetworkConfig(this),
       stage: props.stage,
-      rdsBastion: BaseInfrastructureStack.getBastionConfig(this),
+      rdsBastion: BaseInfrastructureStack.getBastionConfig(this, props.stage),
       rds: BaseInfrastructureStack.getRdsConfig(this),
     })
       .withNetwork()
@@ -48,7 +48,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
       .withRds()
       .outputs();
 
-      
+
     // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
@@ -67,7 +67,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
     };
   }
 
-  static getBastionConfig(scope: Construct): RdsBastionConfig {
+  static getBastionConfig(scope: Construct, stage: Stage): RdsBastionConfig {
     return {
       userDataCommands: [
         'set -eux',
@@ -78,7 +78,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
       subnetSelection: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       instance: {
         type: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.NANO),
-        ami: ec2.MachineImage.latestAmazonLinux2023(),  
+        ami: ec2.MachineImage.latestAmazonLinux2023(),
       },
       securityGroupPorts: [
         {
@@ -86,7 +86,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
           description: 'Allow outbound access to databases',
         },
       ],
-      config: SharedServicesStack.getMigrationOpsConfig(),
+      config: SharedServicesStack.getMigrationOpsConfig(scope, stage),
       parameterResolver: new SsmParameterResolver(scope),
     };
   }

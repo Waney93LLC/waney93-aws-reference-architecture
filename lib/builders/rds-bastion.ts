@@ -15,8 +15,7 @@ import {
   Stage,
 } from '../config/environment';
 import { SecurityGroupConfig } from '../interfaces/common';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { aws_s3 } from 'aws-cdk-lib';
+
 
 export class RdsBastionConfigBuilder {
   constructor(
