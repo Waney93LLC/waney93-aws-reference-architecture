@@ -48,6 +48,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
       .withRds()
       .outputs();
 
+      
     // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
