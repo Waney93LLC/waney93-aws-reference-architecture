@@ -30,6 +30,16 @@ export class OpsRunbookConstruct extends Construct {
     }
     const { target, runCommandDocumentName, automationRunbookName, script } =
       props.migrationOps;
+      if(!script){
+        throw new Error(
+          'Script configuration is required for OpsRunbookConstruct migration operations',
+        );
+      }
+      if(!props.bucketName){
+        throw new Error(
+          'Bucket name is required for OpsRunbookConstruct migration operations',
+        );
+      }
 
     this.runbookName =
       automationRunbookName ?? 'RunBootstrapOnFoundationCreate';
@@ -130,11 +140,8 @@ export class OpsRunbookConstruct extends Construct {
     );
 
     const automationDefinitionArn = `arn:aws:ssm:${region}:${account}:automation-definition/${this.runbookName}`;
-    if (!props.bucketName || !script) {
-      throw new Error(
-        'Either bucketName or script configuration must be provided for OpsRunbookConstruct',
-      );
-    }
+
+
     const migrationSteps = getS3MigrationScriptSteps(
       `s3://${props.bucketName}/${script.folderPath}`,
       script.entryFile,

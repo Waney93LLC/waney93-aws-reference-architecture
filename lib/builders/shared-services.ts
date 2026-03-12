@@ -179,14 +179,19 @@ export class SharedServicesBuilder {
         'Migration Ops configuration is required to create Ops Runbook',
       );
     }
-    this.migrationOpsRunbook = new OpsRunbookConstruct(
-      this.scope,
-      'MigrationBootstrapRunbook',
-      {
-        migrationOps: this.props.migrationOps,
-        bucketName: this.props.migrationStorage?.s3Bucket?.name,
-      },
-    );
+    if (!this.props.migrationStorage){
+      throw new Error(
+        'Migration Storage configuration is required to create Ops Runbook with migration storage integration',
+      );
+    }
+      this.migrationOpsRunbook = new OpsRunbookConstruct(
+        this.scope,
+        'MigrationBootstrapRunbook',
+        {
+          migrationOps: this.props.migrationOps,
+          bucketName: this.props.migrationStorage.s3Bucket?.name,
+        },
+      );
     return this;
   }
 
