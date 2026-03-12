@@ -46,7 +46,6 @@ export class RdsBastionConfigBuilder {
     resourceConfig: ResourceConfigFacade,
   ): MigrationOperations {
     const dbCreds = resourceConfig.getDatabaseCredentials();
-    const migration = resourceConfig.getMigrationScriptConfig();
     const dbCredentials: MigrationDatabaseCredentials = {
       loginSecretName: dbCreds.loginSecretName,
       appUser: {
@@ -57,12 +56,7 @@ export class RdsBastionConfigBuilder {
 
     return {
       config: {
-        ...this.props.config,
-        script: {
-          folderPath: migration.folderPath,
-          entryFile: migration.entryFile,
-          description: migration.description,
-        },
+        ...this.props.config
       },
       databaseCredentials: dbCredentials,
     };
