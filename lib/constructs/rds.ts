@@ -39,8 +39,9 @@ export class Rds extends Construct {
       throw new Error('VPC ID not found in CloudFormation exports.');
     }
     const region = cdk.Stack.of(this).region;
+    const vpcExportedId = cdk.Fn.importValue(network.vpcId);
     const importedVpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
-      vpcId: network.vpcId,
+      vpcId: vpcExportedId,
       availabilityZones: cdk.Fn.getAzs(region),
     });
 
