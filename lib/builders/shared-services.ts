@@ -14,7 +14,7 @@ import { CognitoConstruct } from '../constructs/cognito/cognito-construct';
 import { CognitoUserPoolConstruct } from '../constructs/cognito/cognito-userpool-constructs';
 import { CognitoSecretsConstruct } from '../constructs/cognito/cognito-secrets-constructs';
 import { S3StorageConstruct } from '../constructs/s3storage';
-import { getExportedValueName } from '../config/environment';
+import { ResourceConfigFacade } from '../config/environment';
 
 /**
  * SharedServicesBuilder
@@ -248,21 +248,23 @@ export class SharedServicesBuilder {
       new cdk.CfnOutput(this.scope, 'cognitoUserPoolId', {
         value: this.userPool.userPool.userPoolId,
         description: 'Cognito User Pool ID',
-        exportName: `${this.idPrefix}-CognitoUserPoolId`,
+        exportName:
+          ResourceConfigFacade.ExportedValueName.cognito?.userPoolId ||
+          `${this.idPrefix}-CognitoUserPoolId`,
       });
     }
     if(this.domainCert) {
       new cdk.CfnOutput(this.scope, 'cognitoDomainCertArn', {
         value: this.domainCert.certificateArn,
         description: 'Cognito Custom Domain Certificate ARN',
-        exportName: `${this.idPrefix}-CognitoDomainCertArn`,
+        exportName: ResourceConfigFacade.ExportedValueName.cognito?.certificateArn || `${this.idPrefix}-CognitoDomainCertArn`,
       });
     }
     if (this.s3Construct) {
       new cdk.CfnOutput(this.scope, 'migrationStorageBucketArn', {
         value: this.s3Construct.bucket.bucketArn,
         description: 'Migration Storage Bucket ARN',
-        exportName: getExportedValueName().storage?.migrationStorageBucketArn || `${this.idPrefix}-MigrationStorageBucketArn`,
+        exportName: ResourceConfigFacade.ExportedValueName.storage?.migrationStorageBucketArn || `${this.idPrefix}-MigrationStorageBucketArn`,
       });
     }
     return this;

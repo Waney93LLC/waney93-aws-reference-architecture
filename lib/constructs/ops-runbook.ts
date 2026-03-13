@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as events from 'aws-cdk-lib/aws-events';
-import { RESOURCE_CONFIG } from '../config/environment';
+import { ResourceConfigFacade } from '../config/environment';
 import { OpsRunbookConstructProps } from '../interfaces/shared-services';
 import { EventRouter } from '../constructs/event-router';
 import { SsmAutomationTarget } from '../constructs/ssm-automation-target';
@@ -68,7 +68,7 @@ export class OpsRunbookConstruct extends Construct {
       documentType: 'Automation',
       name: this.runbookName,
       content: {
-        schemaVersion: RESOURCE_CONFIG.AUTOMATION_SCHEMA_VERSION,
+        schemaVersion: ResourceConfigFacade.VersionLock.AUTOMATION_SCHEMA_VERSION,
         description:
           'Triggered by EventBridge when stack completes; runs an existing Run Command document on target instance(s).',
         parameters: {
@@ -151,7 +151,7 @@ export class OpsRunbookConstruct extends Construct {
       name: runCommandDocumentName,
       documentType: 'Command',
       content: {
-        schemaVersion: RESOURCE_CONFIG.SSM_COMMAND_SCHEMA_VERSION,
+        schemaVersion: ResourceConfigFacade.VersionLock.SSM_COMMAND_SCHEMA_VERSION,
         description:
           script?.description ||
           'SSM Document to run migration scripts on the bastion host',

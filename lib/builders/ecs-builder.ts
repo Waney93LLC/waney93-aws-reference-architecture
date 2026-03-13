@@ -14,8 +14,12 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
-import { EcsBuilderProps, EcsServiceSecretsConfig } from '../interfaces/ecs';
-import { getExportedValueName } from '../config/environment';
+import {
+  ECS_CLUSTER_BUILDER,
+  EcsBuilderProps,
+  EcsServiceSecretsConfig,
+} from '../interfaces/ecs';
+import { ResourceConfigFacade } from '../config/environment';
 
 /**
  * EcsBuilder
@@ -49,14 +53,28 @@ export class EcsBuilder {
    */
   private serviceSecrets?: EcsServiceSecretsConfig;
 
+  /**
+   * Creates an instance of EcsBuilder with the given scope, id prefix, and props.
+   * @param scope The Construct scope in which to define resources.
+   * @param idPrefix A prefix for resource IDs to ensure uniqueness.
+   * @param props The properties for configuring the ECS resources.
+   * Note: props is intentionally kept minimal; you can expand it as needed.
+   * For example, you could add more configuration options for the cluster, service, etc.
+   */
   constructor(
     private readonly scope: Construct,
     private readonly idPrefix: string,
     private readonly props: EcsBuilderProps,
   ) {}
 
-  public withCluster(): this {
-    const { network } = getExportedValueName();
+  /**
+   * Adds an ECS cluster to the builder. You can configure the cluster id and name
+   * if id or name is not provided then the default value for the id will be
+   * `${idPrefix}cluster-id` and for the name will be `${idPrefix}cluster-name` as well.
+   * @returns this
+   */
+  public withCluster(ecsClusterBuilder?: ECS_CLUSTER_BUILDER): this {
+    const { network } = ResourceConfigFacade.ExportedValueName;
     if (!network) {
       throw new Error('Network config not found in CloudFormation exports.');
     }
@@ -70,25 +88,23 @@ export class EcsBuilder {
       vpcId: vpcExportedId,
       availabilityZones: cdk.Fn.getAzs(region),
     });
-
-    const clusterid = 'ECS_CONFIG.CLUSTER.ID;';
-    const clusterName = 'ECS_CONFIG.CLUSTER.NAME';
-
-    this.cluster = new ecs.Cluster(this.scope, `${this.idPrefix}${clusterid}`, {
-      vpc: importedVpc,
-      clusterName: clusterName,
-    });
-
+    this.cluster = new ecs.Cluster(
+      this.scope,
+      ecsClusterBuilder?.id ?? `${this.idPrefix}cluster-id`,
+      {
+        vpc: importedVpc,
+        clusterName: ecsClusterBuilder?.name ?? `${this.idPrefix}cluster-name`,
+      },
+    );
     return this;
   }
 
-  public withRepo(): this {
-    // this.repo = ecr.Repository.fromRepositoryName(
-    //   this.scope,
-    //   `${this.idPrefix}${ECS_CONFIG.ECR.REPO_ID}`,
-    //   this.props.imageRepoName,
-    // );
-
+  public withRepo(imageRepoName: string): this {
+    this.repo = ecr.Repository.fromRepositoryName(
+      this.scope,
+      `${this.idPrefix}${imageRepoName}`,
+      imageRepoName,
+    );
     return this;
   }
 

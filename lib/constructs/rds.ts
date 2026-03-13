@@ -12,7 +12,6 @@ import {
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { RdsConstructProps } from '../interfaces/rds';
-import { getExportedValueName } from '../config/environment';
 
 /**
  * Rds

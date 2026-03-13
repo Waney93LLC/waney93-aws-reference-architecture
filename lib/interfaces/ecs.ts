@@ -3,15 +3,17 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 /**
  * Configuration for Aurora cluster credential
  */
-export interface ClusterCredential {
+export interface ClusterCredential {}
 
-}
-
+export type ECS_CLUSTER_BUILDER = {
+  id: string;
+  name: string;
+};
 
 export interface EcsBuilderProps {
 
-}
 
+}
 
 export type ServiceSecretsBag = Record<string, ecs.Secret>;
 export interface EcsServiceSecretsConfig {

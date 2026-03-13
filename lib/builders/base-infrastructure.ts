@@ -6,7 +6,6 @@ import { Network } from '../constructs/network';
 import { RdsBastion } from '../constructs/bastion';
 import { RdsBastionConfigBuilder } from './rds-bastion';
 import {
-  getExportedValueName,
   getResourceParameterConfig,
   ResourceConfigFacade,
   Stage,
@@ -175,13 +174,13 @@ export class BaseInfrastructureBuilder {
     if (this.network) {
       new cdk.CfnOutput(this.scope, 'VpcId', {
         value: this.network.vpc.vpcId,
-        exportName: getExportedValueName().network?.vpcId || 'vpc_id',
+        exportName: ResourceConfigFacade.ExportedValueName.network?.vpcId || 'vpc_id',
       });
     }
     if (this.appClientSg) {
       new cdk.CfnOutput(this.scope, 'AppClientSgId', {
         value: this.appClientSg.securityGroupId,
-        exportName: getExportedValueName().network?.appClientSgId || 'app_client_sg_id',
+        exportName: ResourceConfigFacade.ExportedValueName.network?.appClientSgId || 'app_client_sg_id',
       });
     }
     return this;

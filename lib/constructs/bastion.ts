@@ -7,7 +7,7 @@ import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { MigrationOperations, BastionConfig } from '../interfaces/bastion';
 import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { getS3MigrationScriptSteps } from '../config/migrations/templates';
-import { getExportedValueName, RESOURCE_CONFIG } from '../config/environment';
+import { ResourceConfigFacade } from '../config/environment';
 
 /**
  * Bastion host module (SSM-managed) for accessing RDS in the VPC.
@@ -55,7 +55,7 @@ export class RdsBastion extends Construct {
         ],
       }),
     );
-    const storageConfig = getExportedValueName().storage ?? {
+    const storageConfig = ResourceConfigFacade.ExportedValueName.storage ?? {
       migrationStorageBucketArn: '',
     };
 

@@ -23,13 +23,17 @@ export interface EnvironmentConfig {
 }
 
 export type CfnOutputExportNames = {
+  cognito?: {
+    userPoolId?: string;
+    certificateArn?: string;
+  };
   network?: {
     vpcId?: string;
     appClientSgId?: string;
   };
-  storage?:{
+  storage?: {
     migrationStorageBucketArn?: string;
-  }
+  };
 };
 
 const REPO = {
@@ -88,6 +92,23 @@ export function getResourceParameterConfig(
 }
 
 export class ResourceConfigFacade {
+  static readonly ExportedValueName: CfnOutputExportNames = {
+    cognito: {
+      userPoolId: 'CognitoUserPoolId',
+      certificateArn: 'CognitoDomainCertArn',
+    },
+    network: {
+      vpcId: 'networkid',
+      appClientSgId: 'appClientSgId',
+    },
+    storage: {
+      migrationStorageBucketArn: 'MigrationStorageBucketArn',
+    },
+  };
+  static readonly VersionLock = {
+    AUTOMATION_SCHEMA_VERSION: '0.3',
+    SSM_COMMAND_SCHEMA_VERSION: '2.2',
+  };
   constructor(
     private readonly resolver: IParameterResolver,
     private readonly config: ResourceParameterConfig,
@@ -118,20 +139,3 @@ export class ResourceConfigFacade {
     };
   }
 }
-
-export function getExportedValueName(): CfnOutputExportNames {
-  return {
-    network: {
-      vpcId: 'networkid',
-      appClientSgId: 'appClientSgId',
-    },
-    storage: {
-      migrationStorageBucketArn: 'MigrationStorageBucketArn',
-    },
-  };
-}
-
-export const RESOURCE_CONFIG = {
-  AUTOMATION_SCHEMA_VERSION: '0.3',
-  SSM_COMMAND_SCHEMA_VERSION: '2.2',
-};
