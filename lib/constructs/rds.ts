@@ -28,25 +28,11 @@ export class Rds extends Construct {
   constructor(scope: Construct, id: string, props: RdsConstructProps) {
     super(scope, id);
 
-    const { secGrpConfigs, clusterConfig } = props;
-    const { network } = getExportedValueName();
+    const { secGrpConfigs, clusterConfig,vpc } = props;
 
-    if (!network) {
-      throw new Error('Network config not found in CloudFormation exports.');
-    }
-
-    if (!network.vpcId) {
-      throw new Error('VPC ID not found in CloudFormation exports.');
-    }
-    const region = cdk.Stack.of(this).region;
-    const vpcExportedId = cdk.Fn.importValue(network.vpcId);
-    const importedVpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
-      vpcId: vpcExportedId,
-      availabilityZones: cdk.Fn.getAzs(region),
-    });
 
     this.securityGroup = new SecurityGroup(this, 'RdsSecGrp', {
-      vpc: importedVpc,
+      vpc,
       securityGroupName: 'rdsSecurityGroup',
       description:
         'Security group for RDS cluster allowing access from bastion and app clients',
@@ -64,7 +50,7 @@ export class Rds extends Construct {
     });
 
     this.cluster = new DatabaseCluster(this, clusterConfig.id, {
-      vpc: importedVpc,
+      vpc,
       engine: DatabaseClusterEngine.auroraPostgres({
         version: AuroraPostgresEngineVersion.VER_17_7,
       }),

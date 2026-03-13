@@ -1,5 +1,4 @@
 import * as cdk from 'aws-cdk-lib';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { IVpc } from 'aws-cdk-lib/aws-ec2';
 import { PortRule, SecurityGroupConfig } from './common';
 import { IParameterResolver } from './parameter-resolver';
@@ -10,6 +9,7 @@ import { IParameterResolver } from './parameter-resolver';
  */
 export interface RdsConstructProps extends cdk.StackProps {
   secGrpConfigs: SecurityGroupConfig[];
+  vpc: IVpc;
   clusterConfig: {
     deletionProtection: boolean;
     name: string;
