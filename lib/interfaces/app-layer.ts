@@ -45,4 +45,6 @@ export interface AppStackProps extends cdk.StackProps, AppProps {
  * Purpose:
  *   Strongly-typed Stage props for AppStage.
  */
-export interface AppStageProps extends cdk.StageProps, AppProps {}
+export interface AppStageProps extends cdk.StageProps, AppProps {
+  stage: Stage;
+}

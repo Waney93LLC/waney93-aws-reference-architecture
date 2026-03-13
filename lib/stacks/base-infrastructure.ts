@@ -42,11 +42,11 @@ export class BaseInfrastructureStack extends cdk.Stack {
       rdsBastion: BaseInfrastructureStack.getBastionConfig(this, props.stage),
       rds: BaseInfrastructureStack.getRdsConfig(this),
     })
-      // .withNetwork()
-      // .withRdsBastion()
-      // .withAppClientSecurityGroup()
-      // .withRds()
-      // .outputs();
+      .withNetwork()
+      .withRdsBastion()
+      .withAppClientSecurityGroup()
+      .withRds()
+      .outputs();
 
 
     // Optional tagging convention
