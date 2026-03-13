@@ -185,9 +185,7 @@ export class EcsBuilder {
    * @param fargateBuilder
    * @returns
    */
-  public withDjangoAlbFargateService(
-    fargateBuilder: FARGATE_SERVICE_BUILDER,
-  ): this {
+  public withAlbFargateService(fargateBuilder: FARGATE_SERVICE_BUILDER): this {
     if (!this.cluster)
       throw new Error('Call withCluster() before withAlbFargateService().');
     if (!this.repo)
