@@ -1,3 +1,4 @@
+import { ECS_PARAM_CONFIG } from '../interfaces/ecs';
 import {
   IParameterResolver,
   MigrationScriptConfig,
@@ -88,6 +89,15 @@ export function getResourceParameterConfig(
       entryFile: `/waney93/${stage}/migration-scripts/entryfile`,
       description: `/waney93/${stage}/migration-scripts/description`,
     },
+    ecs: {
+      apiCertArn: `/waney93/${stage}/ecs/api-cert-arn`,
+      imageTag: `/waney93/${stage}/ecs/image-tag`,
+      alertEmailAddress: `/waney93/${stage}/ecs/alert-email-address`,
+      secrets: {
+        auroraSecretName: `/waney93/${stage}/ecs/secrets/aurora-secret-name`,
+        oidcSecretName: `/waney93/${stage}/ecs/secrets/oidc-secret-name`,
+      },
+    },
   };
 }
 
@@ -136,6 +146,24 @@ export class ResourceConfigFacade {
       folderPath: this.resolver.getString(this.config.migration.folderPath),
       entryFile: this.resolver.getString(this.config.migration.entryFile),
       description: this.resolver.getString(this.config.migration.description),
+    };
+  }
+
+  public getEcsConfig(): ECS_PARAM_CONFIG {
+    return {
+      apiCertArn: this.resolver.getString(this.config.ecs.apiCertArn),
+      imageTag: this.resolver.getString(this.config.ecs.imageTag),
+      alertEmailAddress: this.resolver.getString(
+        this.config.ecs.alertEmailAddress,
+      ),
+      secrets: {
+        auroraSecretName: this.resolver.getString(
+          this.config.ecs.secrets.auroraSecretName,
+        ),
+        oidcSecretName: this.resolver.getString(
+          this.config.ecs.secrets.oidcSecretName,
+        ),
+      },
     };
   }
 }

@@ -38,12 +38,7 @@ export type FARGATE_SERVICE_BUILDER = {
   port: AlbFargatePortConfig;
   vpcSubnets: ec2.SubnetSelection;
   appCmds: string[];
-  databaseEngine: string;
-  otel:{
-    expoterOtlpEndpoint: string;
-    expoterOtlpProtocol: string;
-  }
-  allowedHosts:string;
+  environment: AlbFargateConstructProps['environment'];
 };
 
 export interface AlbFargateLoadBalancerConfig {
@@ -242,6 +237,16 @@ export interface ALERTS_BUILDER {
    */
   taskStoppedStopCodes: string[];
 }
+
+export type ECS_PARAM_CONFIG = {
+  apiCertArn: string;
+  imageTag: string;
+  alertEmailAddress: string;
+  secrets: {
+    auroraSecretName: string;
+    oidcSecretName: string;
+  };
+};
 
 export interface EcsBuilderProps {
 

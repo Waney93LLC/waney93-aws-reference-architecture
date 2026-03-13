@@ -1,7 +1,6 @@
 // ecs/builder/ecs-builder.ts
 import { Construct } from 'constructs';
 import * as cdk from 'aws-cdk-lib';
-
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -11,9 +10,6 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import {
   ADOT_SIDECAR_BUILDER,
   ALB_TO_TASKS_BUILDER,
@@ -230,14 +226,7 @@ export class EcsBuilder {
         port: fargateBuilder.port,
         vpcSubnets: fargateBuilder.vpcSubnets,
         apiDomainCertificate: apiCert,
-        environment: {
-          ENGINE: fargateBuilder.databaseEngine,
-          OTEL_EXPORTER_OTLP_ENDPOINT: fargateBuilder.otel.expoterOtlpEndpoint,
-          OTEL_EXPORTER_OTLP_PROTOCOL: fargateBuilder.otel.expoterOtlpProtocol,
-          AWS_REGION: awsRegion,
-          DJANGO_ALLOWED_HOSTS: fargateBuilder.allowedHosts,
-          OTEL_SERVICE_NAME: fargateBuilder.serviceName,
-        },
+        environment: fargateBuilder.environment,
         commands: fargateBuilder.appCmds,
       },
     );

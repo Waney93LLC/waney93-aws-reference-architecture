@@ -1,3 +1,5 @@
+import { ECS_PARAM_CONFIG } from "./ecs";
+
 /**
  * Interface for resolving parameters from various sources (e.g., environment variables, configuration files, etc.).
  * This abstraction allows for flexibility in how parameters are provided to the application, enabling support for different environments and configurations without changing the underlying code that consumes these parameters.
@@ -34,6 +36,7 @@ export interface MigrationScriptConfig {
 export interface ResourceParameterConfig {
   databaseCredentials: DatabaseCredentialParameterNames;
   migration: MigrationScriptConfig;
+  ecs: ECS_PARAM_CONFIG;
 }
 
 /**
