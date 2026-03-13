@@ -19,8 +19,10 @@ import {
   ECS_LOG_GROUP_BUILDER,
   EcsBuilderProps,
   EcsServiceSecretsConfig,
+  FARGATE_SERVICE_BUILDER,
 } from '../interfaces/ecs';
 import { ResourceConfigFacade } from '../config/environment';
+import { AlbFargateConstruct } from '../constructs/ecs/fargate';
 
 /**
  * EcsBuilder
@@ -41,7 +43,7 @@ export class EcsBuilder {
 
   public serviceSg?: ec2.ISecurityGroup;
 
-  public service?: ApplicationLoadBalancedFargateService;
+  public service?: AlbFargateConstruct;
   public web?: ecs.ContainerDefinition;
   public adot?: ecs.ContainerDefinition;
 
@@ -177,7 +179,7 @@ export class EcsBuilder {
     return this;
   }
 
-  public withAlbFargateService(): this {
+  public withAlbFargateService(fargateBuilder: FARGATE_SERVICE_BUILDER): this {
     if (!this.cluster)
       throw new Error('Call withCluster() before withAlbFargateService().');
     if (!this.repo)
@@ -196,97 +198,24 @@ export class EcsBuilder {
       );
     }
 
-    // const apiCert = acm.Certificate.fromCertificateArn(
-    //   this.scope,
-    //   `${this.idPrefix}ApiCert`,
-    //   this.props.apiCertArn,
-    // );
-    // const {ECS_CONFIG} = Config;
+    const apiCert = fargateBuilder.apiDomainCertificate;
 
-    // this.service = new ApplicationLoadBalancedFargateService(
-    //   this.scope,
-    //   `${this.idPrefix}${ECS_CONFIG.SERVICE.ID}`,
-    //   {
-    //     cluster: this.cluster,
-    //     serviceName: this.props.serviceName,
-    //     publicLoadBalancer:
-    //       ECS_CONFIG.SERVICE.PUBLIC_LOAD_BALANCER,
-    //     loadBalancerName: ECS_CONFIG.SERVICE.PUBLIC_LOAD_BALANCER_NAME,
-    //     enableExecuteCommand:
-    //       ECS_CONFIG.SERVICE.ENABLE_EXECUTE_COMMAND,
-    //     desiredCount:
-    //       ECS_CONFIG.SERVICE.DESIRED_COUNT,
+    this.service = new AlbFargateConstruct(this.scope, `${this.idPrefix}${fargateBuilder.serviceId}`, {
+      cluster: this.cluster,
+      repo: this.repo,
+      logGroup: this.logGroup,
+      serviceSg: this.serviceSg,
+      secretsBag: secretsBag,
+      idPrefix: this.idPrefix,
+      serviceId: fargateBuilder.serviceId,
+      serviceName: fargateBuilder.serviceName,
+      loadBalancer: fargateBuilder.loadBalancer,
+      task: fargateBuilder.task,
+      port: fargateBuilder.port,
+      vpcSubnets: fargateBuilder.vpcSubnets,
+      apiDomainCertificate: apiCert,
+    });
 
-    //     listenerPort:
-    //       ECS_CONFIG.SERVICE.LISTENER_PORT,
-
-    //     protocol: elbv2.ApplicationProtocol.HTTPS,
-    //     certificate: apiCert,
-    //     sslPolicy: elbv2.SslPolicy.RECOMMENDED,
-
-    //     taskSubnets: { subnets: this.props.vpc.privateSubnets },
-    //     securityGroups: [this.serviceSg],
-
-    //     cpu:ECS_CONFIG.SERVICE.TASK_CPU,
-    //     memoryLimitMiB: ECS_CONFIG.SERVICE.TASK_MEMORY_MIB,
-
-    //     taskImageOptions: {
-    //       family: ECS_CONFIG.SERVICE.TASK_DEFINITION_FAMILY,
-    //       containerName: ECS_CONFIG.SERVICE.WEB_CONTAINER_NAME,
-    //       image: ecs.ContainerImage.fromEcrRepository(
-    //         this.repo,
-    //         this.props.imageTag,
-    //       ),
-    //       containerPort: ECS_CONFIG.SERVICE.CONTAINER_PORT,
-    //       logDriver: new ecs.AwsLogDriver({
-    //         logGroup: this.logGroup,
-    //         streamPrefix: ECS_CONFIG.LOGS.STREAM_PREFIX_WEB,
-    //       }),
-
-    //       environment: {
-    //         ENGINE:ECS_CONFIG.APP_ENV.ENGINE,
-    //         OTEL_EXPORTER_OTLP_ENDPOINT: ECS_CONFIG.APP_ENV.OTEL_EXPORTER_OTLP_ENDPOINT,
-    //         OTEL_EXPORTER_OTLP_PROTOCOL: ECS_CONFIG.APP_ENV.OTEL_EXPORTER_OTLP_PROTOCOL,
-    //         AWS_REGION: ECS_CONFIG.REGION,
-    //         DJANGO_ALLOWED_HOSTS: ECS_CONFIG.APP_ENV.APP_DOMAIN.ALLOWED_HOSTS,
-    //         // COGNITO_USER_POOL_ID: Config.COGNITO_CONFIG.USER_POOL_ID,
-    //         // COGNITO_DOMAIN: Config.COGNITO_CONFIG.DOMAIN_URL,
-    //         // OIDC_RP_CLIENT_ID: Config.COGNITO_CONFIG.CLIENT_ID,
-    //         OTEL_SERVICE_NAME: this.props.serviceName,
-    //       },
-
-    //       secrets: secretsBag,
-    //       command: ECS_CONFIG.GUNICORN.COMMAND,
-    //     },
-    //   },
-    // );
-    /**
-     *     APP_ENV: {
-      USE_RDS: 'true',
-      ENGINE: 'django.db.backends.postgresql',
-
-      // OTEL
-      OTEL_EXPORTER_OTLP_ENDPOINT: 'http://127.0.0.1:4318',
-      OTEL_EXPORTER_OTLP_PROTOCOL: 'http/protobuf',
-    },
-     */
-
-    // HTTP -> HTTPS redirect listener
-    // this.service.loadBalancer.addListener(`${this.idPrefix}HttpRedirect`, {
-    //   port: 80,
-    //   protocol: elbv2.ApplicationProtocol.HTTP,
-    //   defaultAction: elbv2.ListenerAction.redirect({
-    //     protocol: 'HTTPS',
-    //     port: '443',
-    //     permanent: true,
-    //   }),
-    // });
-
-    // const web = this.service.taskDefinition.defaultContainer;
-    // if (!web)
-    //   throw new Error('Default container (web) was not created as expected.');
-
-    // this.web = web;
     return this;
   }
 
@@ -442,27 +371,6 @@ export class EcsBuilder {
   }
 
   public outputs(): this {
-    // const { ECS_CONFIG } = Config;
-    if (!this.service)
-      throw new Error('Call withAlbFargateService() before outputs().');
-
-    const stack = cdk.Stack.of(this.scope);
-
-    // new cdk.CfnOutput(
-    //   stack,
-    //   `${this.idPrefix}${ECS_CONFIG.OUTPUTS.LOAD_BALANCER_DNS_ID}`,
-    //   {
-    //     value: this.service.loadBalancer.loadBalancerDnsName,
-    //   },
-    // );
-
-    new cdk.CfnOutput(stack, `${this.idPrefix}ALB_CanonicalHostedZoneID`, {
-      value: this.service.loadBalancer.loadBalancerCanonicalHostedZoneId,
-    });
-
-    new cdk.CfnOutput(stack, `${this.idPrefix}AlbArn`, {
-      value: this.service.loadBalancer.loadBalancerArn,
-    });
 
     return this;
   }
