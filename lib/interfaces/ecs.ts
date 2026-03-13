@@ -17,6 +17,7 @@ export interface ClusterCredential {}
 export type ECS_CLUSTER_BUILDER = {
   id: string;
   name: string;
+  vpc: ec2.IVpc;
 };  
 
 /**

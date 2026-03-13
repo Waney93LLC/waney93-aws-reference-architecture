@@ -78,30 +78,12 @@ export class EcsBuilder {
    * @returns this
    */
   public withCluster(ecsClusterBuilder?: ECS_CLUSTER_BUILDER): this {
-    const { network } = ResourceConfigFacade.ExportedValueName;
-    if (!network) {
-      throw new Error('Network config not found in CloudFormation exports.');
-    }
-    if (!network.vpcId) {
-      throw new Error('VPC ID not found in CloudFormation exports.');
-    }
 
-    const region = cdk.Stack.of(this.scope).region;
-    const vpcExportedId = cdk.Fn.importValue(network.vpcId);
-    if(!vpcExportedId) {
-      throw new Error(
-        `vpcExportedId is undefined. network.vpcId :${network.vpcId} `,
-      );
-    }
-    const importedVpc = ec2.Vpc.fromVpcAttributes(this.scope, 'ImportedVPC', {
-      vpcId: vpcExportedId,
-      availabilityZones: cdk.Fn.getAzs(region),
-    });
     this.cluster = new ecs.Cluster(
       this.scope,
       ecsClusterBuilder?.id ?? `${this.idPrefix}cluster-id`,
       {
-        vpc: importedVpc,
+        vpc: ecsClusterBuilder?.vpc,
         clusterName: ecsClusterBuilder?.name ?? `${this.idPrefix}cluster-name`,
       },
     );

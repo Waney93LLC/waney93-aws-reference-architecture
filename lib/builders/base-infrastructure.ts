@@ -29,10 +29,11 @@ import {
  *   - Keep public methods fluent (return this) to support chaining.
  */
 export class BaseInfrastructureBuilder {
+  public network?: Network;
   private readonly scope: Construct;
   private readonly idPrefix: string;
   private readonly props: Required<BaseInfrastructureBuilderProps>;
-  private network?: Network;
+
   private appClientSg?: ec2.SecurityGroup;
   private data?: Rds;
   private bastion?: RdsBastion;
@@ -174,13 +175,16 @@ export class BaseInfrastructureBuilder {
     if (this.network) {
       new cdk.CfnOutput(this.scope, 'VpcId', {
         value: this.network.vpc.vpcId,
-        exportName: ResourceConfigFacade.ExportedValueName.network?.vpcId || 'vpc_id',
+        exportName:
+          ResourceConfigFacade.ExportedValueName.network?.vpcId || 'vpc_id',
       });
     }
     if (this.appClientSg) {
       new cdk.CfnOutput(this.scope, 'AppClientSgId', {
         value: this.appClientSg.securityGroupId,
-        exportName: ResourceConfigFacade.ExportedValueName.network?.appClientSgId || 'app_client_sg_id',
+        exportName:
+          ResourceConfigFacade.ExportedValueName.network?.appClientSgId ||
+          'app_client_sg_id',
       });
     }
     return this;

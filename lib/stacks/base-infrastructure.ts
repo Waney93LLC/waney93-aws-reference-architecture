@@ -14,6 +14,7 @@ import { SharedServicesStack } from './shared-services';
 import { Stage } from '../config/environment';
 import { SsmParameterResolver } from '../config/ssm-parameter-resolver';
 import { RdsConfig } from '../interfaces/rds';
+import { Network } from '../constructs/network';
 
 /**
  * BaseInfrastructureStack
@@ -23,6 +24,7 @@ import { RdsConfig } from '../interfaces/rds';
  *   Keep this thin; orchestration belongs in builders.
  */
 export class BaseInfrastructureStack extends cdk.Stack {
+  public readonly network?:Network;
   /**
    * BaseInfrastructureStack constructor that instantiates BaseInfrastructureBuilder
    * @param scope - The construct scope
@@ -36,7 +38,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
   ) {
     super(scope, id, props);
 
-    new BaseInfrastructureBuilder(this, 'BaseInfrastructureBuilder', {
+    const builder = new BaseInfrastructureBuilder(this, 'BaseInfrastructureBuilder', {
       network: BaseInfrastructureStack.getNetworkConfig(this),
       stage: props.stage,
       rdsBastion: BaseInfrastructureStack.getBastionConfig(this, props.stage),
@@ -47,6 +49,8 @@ export class BaseInfrastructureStack extends cdk.Stack {
       .withAppClientSecurityGroup()
       .withRds()
       .outputs();
+
+      this.network = builder.network ;
 
 
     // Optional tagging convention

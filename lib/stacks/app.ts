@@ -38,13 +38,13 @@ export class AppStack extends cdk.Stack {
       resourceConfig.getDatabaseCredentials().loginSecretName;
     const oidcSecretName = cognitoConfig.app.name;
     const repoName = SharedServicesStack.getEcrConfig().REPO_NAME;
-    
+
     const secretsBag = createDjangoSecretsBag(
       this,
       auroraSecretName,
       oidcSecretName,
     );
-    const builders = createDjangoEcsBuilders(this, ecsConfig);
+    const builders = createDjangoEcsBuilders(this, ecsConfig,props.vpc);
 
     new EcsBuilder(this, 'App', props)
       .withCluster(builders.clusterBuilder)
