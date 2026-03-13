@@ -88,6 +88,11 @@ export class EcsBuilder {
 
     const region = cdk.Stack.of(this.scope).region;
     const vpcExportedId = cdk.Fn.importValue(network.vpcId);
+    if(!vpcExportedId) {
+      throw new Error(
+        `vpcExportedId is undefined. network.vpcId :${network.vpcId} `,
+      );
+    }
     const importedVpc = ec2.Vpc.fromVpcAttributes(this.scope, 'ImportedVPC', {
       vpcId: vpcExportedId,
       availabilityZones: cdk.Fn.getAzs(region),
