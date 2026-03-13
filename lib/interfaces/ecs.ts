@@ -242,10 +242,6 @@ export type ECS_PARAM_CONFIG = {
   apiCertArn: string;
   imageTag: string;
   alertEmailAddress: string;
-  secrets: {
-    auroraSecretName: string;
-    oidcSecretName: string;
-  };
 };
 
 export interface EcsBuilderProps {

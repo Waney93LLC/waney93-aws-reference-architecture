@@ -3,7 +3,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
-import { ECS_PARAM_CONFIG, ServiceSecretsBag } from '../../interfaces/ecs';
+import { ServiceSecretsBag } from '../../interfaces/ecs';
 
 
 const POSTGRES_KEYS = [
@@ -32,19 +32,20 @@ const COGNITO_KEYS = [
 
 export function createDjangoSecretsBag(
   scope: cdk.Stack,
-  ecsConfig: ECS_PARAM_CONFIG,
+  auroraSecretName: string,
+  oidcSecretName: string,
 ): ServiceSecretsBag {
   const secretsBag: ServiceSecretsBag = {};
 
   const auroraSecret = secretsmanager.Secret.fromSecretNameV2(
     scope,
     'AuroraSecret',
-    ecsConfig.secrets.auroraSecretName,
+    auroraSecretName,
   );
   const oidcSecret = secretsmanager.Secret.fromSecretNameV2(
     scope,
     'OidcSecret',
-    ecsConfig.secrets.oidcSecretName,
+    oidcSecretName,
   );
 
   POSTGRES_KEYS.forEach((key) => {

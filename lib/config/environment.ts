@@ -93,11 +93,7 @@ export function getResourceParameterConfig(
       apiCertArn: `/waney93/${stage}/ecs/api-cert-arn`,
       imageTag: `/waney93/${stage}/ecs/image-tag`,
       alertEmailAddress: `/waney93/${stage}/ecs/alert-email-address`,
-      secrets: {
-        auroraSecretName: `/waney93/${stage}/ecs/secrets/aurora-secret-name`,
-        oidcSecretName: `/waney93/${stage}/ecs/secrets/oidc-secret-name`,
-      },
-    },
+    }
   };
 }
 
@@ -156,14 +152,12 @@ export class ResourceConfigFacade {
       alertEmailAddress: this.resolver.getString(
         this.config.ecs.alertEmailAddress,
       ),
-      secrets: {
-        auroraSecretName: this.resolver.getString(
-          this.config.ecs.secrets.auroraSecretName,
-        ),
-        oidcSecretName: this.resolver.getString(
-          this.config.ecs.secrets.oidcSecretName,
-        ),
-      },
     };
+  }
+
+  public getCognitoConfig(envConfig: EnvironmentConfig['cognito']) {
+    return {
+      cognitoCertArn:this.resolver.getString(envConfig?.acmCertificateArnParameter ?? ''),
+    }
   }
 }

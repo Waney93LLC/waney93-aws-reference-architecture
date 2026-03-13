@@ -22,7 +22,6 @@ import {
 export interface DjangoEcsBuilders {
   clusterBuilder: ECS_CLUSTER_BUILDER;
   logGroupBuilder: ECS_LOG_GROUP_BUILDER;
-  repoName: string;
   fargateBuilder: FARGATE_SERVICE_BUILDER;
   adotBuilder: ADOT_SIDECAR_BUILDER;
   albToTasksBuilder: ALB_TO_TASKS_BUILDER;
@@ -195,7 +194,6 @@ service:
   return {
     clusterBuilder,
     logGroupBuilder,
-    repoName: 'djangoproject',
     fargateBuilder,
     adotBuilder,
     albToTasksBuilder,

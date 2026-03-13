@@ -2,10 +2,15 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { EcsBuilder } from '../builders/ecs-builder';
 import { SsmParameterResolver } from '../config/ssm-parameter-resolver';
-import { getResourceParameterConfig, ResourceConfigFacade } from '../config/environment';
+import {
+  getResourceParameterConfig,
+  ResourceConfigFacade,
+  getEnvConfig,
+} from '../config/environment';
 import { AppStackProps } from '../interfaces/app-layer';
 import { createDjangoSecretsBag } from '../config/applications/django-secrets-factory';
 import { createDjangoEcsBuilders } from '../config/applications/django-ecs';
+import { SharedServicesStack } from './shared-services';
 
 export class AppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AppStackProps) {
@@ -16,13 +21,35 @@ export class AppStack extends cdk.Stack {
       getResourceParameterConfig(props.stage),
     ).getEcsConfig();
 
-    const secretsBag = createDjangoSecretsBag(this, ecsConfig);
-    const builders   = createDjangoEcsBuilders(this, ecsConfig);
+    const envConfig = getEnvConfig(props.stage);
+    const acmCertificateArnParameter =
+      envConfig.cognito?.acmCertificateArnParameter;
+    const resourceConfig = new ResourceConfigFacade(
+      new SsmParameterResolver(this),
+      getResourceParameterConfig(props.stage),
+    );
+    const cognitoCertArn = resourceConfig.getCognitoConfig({
+      acmCertificateArnParameter,
+    }).cognitoCertArn;
+
+    const cognitoConfig = SharedServicesStack.getCognitoConfig(cognitoCertArn);
+
+    const auroraSecretName =
+      resourceConfig.getDatabaseCredentials().loginSecretName;
+    const oidcSecretName = cognitoConfig.app.name;
+    const repoName = SharedServicesStack.getEcrConfig().REPO_NAME;
+    
+    const secretsBag = createDjangoSecretsBag(
+      this,
+      auroraSecretName,
+      oidcSecretName,
+    );
+    const builders = createDjangoEcsBuilders(this, ecsConfig);
 
     new EcsBuilder(this, 'App', props)
       .withCluster(builders.clusterBuilder)
       .withLogGroup(builders.logGroupBuilder)
-      .withRepo(builders.repoName)
+      .withRepo(repoName)
       .withSecurityGroup()
       .withServiceSecrets({ secretsBag })
       .withAlbFargateService(builders.fargateBuilder)
