@@ -16,6 +16,7 @@ import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import {
   ECS_CLUSTER_BUILDER,
+  ECS_LOG_GROUP_BUILDER,
   EcsBuilderProps,
   EcsServiceSecretsConfig,
 } from '../interfaces/ecs';
@@ -99,6 +100,11 @@ export class EcsBuilder {
     return this;
   }
 
+  /**
+   * Adds an ECR repository to the builder by repository name. The repository must already exist.
+   * @param imageRepoName The name of the existing ECR repository to use (ususally located from the Shared services stack).
+   * @returns this
+   */
   public withRepo(imageRepoName: string): this {
     this.repo = ecr.Repository.fromRepositoryName(
       this.scope,
@@ -108,36 +114,53 @@ export class EcsBuilder {
     return this;
   }
 
-  public withLogGroup(): this {
-    // this.logGroup = new logs.LogGroup(
-    //   this.scope,
-    //   `${this.idPrefix}${ECS_CONFIG.LOGS.GROUP_ID}`,
-    //   {
-    //     logGroupName: ECS_CONFIG.LOGS.GROUP_NAME,
-    //     retention: ECS_CONFIG.LOGS.RETENTION,
-    //     removalPolicy: cdk.RemovalPolicy.DESTROY,
-    //   },
-    // );
-
+  /**
+   * Adds a CloudWatch Logs log group to the builder. You can configure the log group name, retention, and removal policy.
+   * @param logGroupBuilder Optional configuration for the log group.
+   * @returns this
+   */
+  public withLogGroup(logGroupBuilder?: ECS_LOG_GROUP_BUILDER): this {
+    this.logGroup = new logs.LogGroup(
+      this.scope,
+      `${this.idPrefix}${logGroupBuilder?.id ?? 'ECSLogGroup'}`,
+      {
+        logGroupName: logGroupBuilder?.name ?? '/ecs/log-group',
+        retention: logGroupBuilder?.retention ?? logs.RetentionDays.ONE_DAY,
+        removalPolicy:
+          logGroupBuilder?.removalPolicy ?? cdk.RemovalPolicy.DESTROY,
+      },
+    );
     return this;
   }
 
+  /**
+   * Imported the app client security group created in the Network stack and adds it to the builder.
+   * @returns this
+   */
   public withSecurityGroup(): this {
-    //  const appClientSgId = cdk.Fn.importValue(
-    //         Config.FOUNDATION.VPC.APP_SEC_GRP.NAME,
-    //       );
+    if (!ResourceConfigFacade.ExportedValueName.network?.appClientSgId) {
+      throw new Error('App Client SG ID not found in CloudFormation exports.');
+    }
+    const appClientSgId = cdk.Fn.importValue(
+      ResourceConfigFacade.ExportedValueName.network.appClientSgId,
+    );
 
-    //       const appClientSg = ec2.SecurityGroup.fromSecurityGroupId(
-    //         this.scope,
-    //         'ImportedAppClientSg',
-    //         appClientSgId,
-    //       );
+    const appClientSg = ec2.SecurityGroup.fromSecurityGroupId(
+      this.scope,
+      'ImportedAppClientSg',
+      appClientSgId,
+    );
 
-    //   this.serviceSg = appClientSg;
+    this.serviceSg = appClientSg;
 
     return this;
   }
 
+  /**
+   * Adds a configuration for service secrets, which can be used in addAlbFargateService. You can specify requiredKeys to enforce that certain secrets must be present before addAlbFargateService can be called.
+   * @param config Configuration for service secrets.
+   * @returns this
+   */
   public withServiceSecrets(config: EcsServiceSecretsConfig): this {
     this.serviceSecrets = {
       requiredKeys: config.requiredKeys ?? [
@@ -166,14 +189,13 @@ export class EcsBuilder {
         'Call withSecurityGroup() before withAlbFargateService().',
       );
 
-    // const secretsBag = this.serviceSecrets?.secretsBag;
-    // if (!secretsBag) {
-    //   throw new Error(
-    //     'Call withServiceSecrets({ secretsBag }) before withAlbFargateService().',
-    //   );
-    // }
+    const secretsBag = this.serviceSecrets?.secretsBag;
+    if (!secretsBag) {
+      throw new Error(
+        'Call withServiceSecrets({ secretsBag }) before withAlbFargateService().',
+      );
+    }
 
-    // // cert (kept as-is; you can also move this to props like Cognito does)
     // const apiCert = acm.Certificate.fromCertificateArn(
     //   this.scope,
     //   `${this.idPrefix}ApiCert`,

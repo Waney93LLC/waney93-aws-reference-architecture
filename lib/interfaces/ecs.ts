@@ -1,13 +1,27 @@
 import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as cdk from 'aws-cdk-lib';
 
 /**
  * Configuration for Aurora cluster credential
  */
 export interface ClusterCredential {}
 
+/**
+ * Configuration for ECS cluster
+ */
 export type ECS_CLUSTER_BUILDER = {
   id: string;
   name: string;
+};  
+
+/**
+ * Configuration for ECS log group
+ */
+export type ECS_LOG_GROUP_BUILDER = {
+  name: string;
+  id: string;
+  retention: cdk.aws_logs.RetentionDays;
+  removalPolicy: cdk.RemovalPolicy;
 };
 
 export interface EcsBuilderProps {
