@@ -148,7 +148,6 @@ export class BaseInfrastructureBuilder {
     };
 
     this.data = new Rds(this.scope, `${this.idPrefix}-Data`, {
-      vpc: this.network.vpc,
       secGrpConfigs: [bastionSecGrpConfig, appClientSecurityGroup],
       clusterConfig,
       ...this.props.rds,

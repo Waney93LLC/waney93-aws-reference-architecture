@@ -1,7 +1,7 @@
 // rds.ts (converted from Stack -> Construct)
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { SubnetType, SecurityGroup, Port } from 'aws-cdk-lib/aws-ec2';
+import { SubnetType, SecurityGroup } from 'aws-cdk-lib/aws-ec2';
 import {
   AuroraPostgresEngineVersion,
   ClusterInstance,
@@ -10,7 +10,9 @@ import {
   DatabaseClusterEngine,
 } from 'aws-cdk-lib/aws-rds';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { RdsConstructProps } from '../interfaces/rds';
+import { getExportedValueName } from '../config/environment';
 
 /**
  * Rds
@@ -26,10 +28,24 @@ export class Rds extends Construct {
   constructor(scope: Construct, id: string, props: RdsConstructProps) {
     super(scope, id);
 
-    const { vpc, secGrpConfigs, clusterConfig } = props;
+    const { secGrpConfigs, clusterConfig } = props;
+    const { network } = getExportedValueName();
+
+    if (!network) {
+      throw new Error('Network config not found in CloudFormation exports.');
+    }
+
+    if (!network.vpcId) {
+      throw new Error('VPC ID not found in CloudFormation exports.');
+    }
+    const region = cdk.Stack.of(this).region;
+    const importedVpc = ec2.Vpc.fromVpcAttributes(this, 'ImportedVPC', {
+      vpcId: network.vpcId,
+      availabilityZones: cdk.Fn.getAzs(region),
+    });
 
     this.securityGroup = new SecurityGroup(this, 'RdsSecGrp', {
-      vpc,
+      vpc: importedVpc,
       securityGroupName: 'rdsSecurityGroup',
       description:
         'Security group for RDS cluster allowing access from bastion and app clients',
@@ -47,7 +63,7 @@ export class Rds extends Construct {
     });
 
     this.cluster = new DatabaseCluster(this, clusterConfig.id, {
-      vpc,
+      vpc: importedVpc,
       engine: DatabaseClusterEngine.auroraPostgres({
         version: AuroraPostgresEngineVersion.VER_17_7,
       }),

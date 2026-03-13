@@ -9,7 +9,6 @@ import { IParameterResolver } from './parameter-resolver';
  * An interface for configuring the properties for RdsStack
  */
 export interface RdsConstructProps extends cdk.StackProps {
-  vpc: IVpc;
   secGrpConfigs: SecurityGroupConfig[];
   clusterConfig: {
     deletionProtection: boolean;
