@@ -2,10 +2,11 @@ import { Construct } from 'constructs';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import { AlbFargateConstructProps } from '../../interfaces/ecs';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 
 export class AlbFargateConstruct extends Construct {
-  public readonly service: ApplicationLoadBalancedFargateService;
-  public readonly taskDefinition: ApplicationLoadBalancedFargateService['taskDefinition'];
+  public readonly albFargate: ApplicationLoadBalancedFargateService;
+
 
   /**
    * Creates an Application Load Balanced Fargate Service.
@@ -19,7 +20,7 @@ export class AlbFargateConstruct extends Construct {
 
     const idPrefix = props.idPrefix ?? '';
 
-    this.service = new ApplicationLoadBalancedFargateService(
+    this.albFargate = new ApplicationLoadBalancedFargateService(
       this,
       `${idPrefix}${props.serviceId}`,
       {
@@ -48,32 +49,32 @@ export class AlbFargateConstruct extends Construct {
         certificate: props.apiDomainCertificate,
         sslPolicy: elbv2.SslPolicy.RECOMMENDED,
 
-        // taskImageOptions: {
-        //   family: ECS_CONFIG.SERVICE.TASK_DEFINITION_FAMILY,
-        //   containerName: ECS_CONFIG.SERVICE.WEB_CONTAINER_NAME,
-        //   image: ecs.ContainerImage.fromEcrRepository(props.repo, imageTag),
-        //   containerPort: ECS_CONFIG.SERVICE.CONTAINER_PORT,
-        //   logDriver: new ecs.AwsLogDriver({
-        //     logGroup: props.logGroup,
-        //     streamPrefix: ECS_CONFIG.LOGS.STREAM_PREFIX_WEB,
-        //   }),
-        //   environment: { ... },
-        //   secrets: props.secretsBag,
-        //   command: ECS_CONFIG.GUNICORN.COMMAND,
-        // },
+        taskImageOptions: {
+          family: props.task.family,
+          containerName: props.task.containerName,
+          image: ecs.ContainerImage.fromEcrRepository(
+            props.repo,
+            props.task.imageTag,
+          ),
+          containerPort: props.port.container,
+          logDriver: new ecs.AwsLogDriver({
+            logGroup: props.logGroup,
+            streamPrefix: props.task.logStreamPrefix,
+          }),
+          environment: props.environment,
+          secrets: props.secretsBag,
+          command: props.commands,
+        },
       },
     );
-    this.taskDefinition = this.service.taskDefinition;
-
-    // HTTP → HTTPS redirect listener (uncomment when ready)
-    // this.service.loadBalancer.addListener(`${idPrefix}HttpRedirect`, {
-    //   port: 80,
-    //   protocol: elbv2.ApplicationProtocol.HTTP,
-    //   defaultAction: elbv2.ListenerAction.redirect({
-    //     protocol: 'HTTPS',
-    //     port: '443',
-    //     permanent: true,
-    //   }),
-    // });
+    this.albFargate.loadBalancer.addListener(`${idPrefix}HttpRedirect`, {
+      port: 80,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      defaultAction: elbv2.ListenerAction.redirect({
+        protocol: 'HTTPS',
+        port: '443',
+        permanent: true,
+      }),
+    });
   }
 }

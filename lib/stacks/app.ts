@@ -2,7 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AppStackProps } from '../interfaces/app-layer';
-import { AppBuilder } from '../builders/app';
+
 
 /**
  * AppStack
@@ -23,6 +23,7 @@ export class AppStack extends cdk.Stack {
     super(scope, id, props);
 
     new AppBuilder(this, 'AppBuilder', props)
+    
       .build()
       .outputs();
 

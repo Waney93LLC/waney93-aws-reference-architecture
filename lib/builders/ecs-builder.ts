@@ -15,14 +15,19 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { ApplicationLoadBalancedFargateService } from 'aws-cdk-lib/aws-ecs-patterns';
 import {
+  ADOT_SIDECAR_BUILDER,
+  ALB_TO_TASKS_BUILDER,
+  ALERTS_BUILDER,
   ECS_CLUSTER_BUILDER,
   ECS_LOG_GROUP_BUILDER,
   EcsBuilderProps,
   EcsServiceSecretsConfig,
   FARGATE_SERVICE_BUILDER,
+  HEALTH_CHECK_BUILDER,
 } from '../interfaces/ecs';
 import { ResourceConfigFacade } from '../config/environment';
 import { AlbFargateConstruct } from '../constructs/ecs/fargate';
+import { AdotSidecarConstruct } from '../constructs/ecs/adot-sidecar';
 
 /**
  * EcsBuilder
@@ -43,9 +48,9 @@ export class EcsBuilder {
 
   public serviceSg?: ec2.ISecurityGroup;
 
-  public service?: AlbFargateConstruct;
+  public serviceConstruct?: AlbFargateConstruct;
   public web?: ecs.ContainerDefinition;
-  public adot?: ecs.ContainerDefinition;
+  public adot?: AdotSidecarConstruct;
 
   public alertsTopic?: sns.Topic;
   public stoppedRule?: events.Rule;
@@ -179,7 +184,14 @@ export class EcsBuilder {
     return this;
   }
 
-  public withAlbFargateService(fargateBuilder: FARGATE_SERVICE_BUILDER): this {
+  /**
+   * Creates a Fargate service that is suitable for a Django application
+   * @param fargateBuilder
+   * @returns
+   */
+  public withDjangoAlbFargateService(
+    fargateBuilder: FARGATE_SERVICE_BUILDER,
+  ): this {
     if (!this.cluster)
       throw new Error('Call withCluster() before withAlbFargateService().');
     if (!this.repo)
@@ -199,90 +211,87 @@ export class EcsBuilder {
     }
 
     const apiCert = fargateBuilder.apiDomainCertificate;
+    const awsRegion = cdk.Stack.of(this.scope).region;
 
-    this.service = new AlbFargateConstruct(this.scope, `${this.idPrefix}${fargateBuilder.serviceId}`, {
-      cluster: this.cluster,
-      repo: this.repo,
-      logGroup: this.logGroup,
-      serviceSg: this.serviceSg,
-      secretsBag: secretsBag,
-      idPrefix: this.idPrefix,
-      serviceId: fargateBuilder.serviceId,
-      serviceName: fargateBuilder.serviceName,
-      loadBalancer: fargateBuilder.loadBalancer,
-      task: fargateBuilder.task,
-      port: fargateBuilder.port,
-      vpcSubnets: fargateBuilder.vpcSubnets,
-      apiDomainCertificate: apiCert,
-    });
+    this.serviceConstruct = new AlbFargateConstruct(
+      this.scope,
+      `${this.idPrefix}${fargateBuilder.serviceId}`,
+      {
+        cluster: this.cluster,
+        repo: this.repo,
+        logGroup: this.logGroup,
+        serviceSg: this.serviceSg,
+        secretsBag: secretsBag,
+        idPrefix: this.idPrefix,
+        serviceId: fargateBuilder.serviceId,
+        serviceName: fargateBuilder.serviceName,
+        loadBalancer: fargateBuilder.loadBalancer,
+        task: fargateBuilder.task,
+        port: fargateBuilder.port,
+        vpcSubnets: fargateBuilder.vpcSubnets,
+        apiDomainCertificate: apiCert,
+        environment: {
+          ENGINE: fargateBuilder.databaseEngine,
+          OTEL_EXPORTER_OTLP_ENDPOINT: fargateBuilder.otel.expoterOtlpEndpoint,
+          OTEL_EXPORTER_OTLP_PROTOCOL: fargateBuilder.otel.expoterOtlpProtocol,
+          AWS_REGION: awsRegion,
+          DJANGO_ALLOWED_HOSTS: fargateBuilder.allowedHosts,
+          OTEL_SERVICE_NAME: fargateBuilder.serviceName,
+        },
+        commands: fargateBuilder.appCmds,
+      },
+    );
 
     return this;
   }
 
-  public withAdotSidecar(): this {
-    // const escDotCommand = ECS_CONFIG.ADOT.COMMAND;
-    // if (!escDotCommand) {
-    //   throw new Error(
-    //     'ECS_CONFIG/ADOT/COMMAND is required in config to use withAdotSidecar().',
-    //   );
-    // }
-
-    if (!this.service)
+  public withAdotSidecar(adotBuilder: ADOT_SIDECAR_BUILDER): this {
+    if (!this.serviceConstruct)
       throw new Error('Call withAlbFargateService() before withAdotSidecar().');
-    if (!this.web)
-      throw new Error(
-        'Web container missing (withAlbFargateService should set it).',
-      );
     if (!this.logGroup)
       throw new Error('Call withLogGroup() before withAdotSidecar().');
 
-    // const adot = this.service.taskDefinition.addContainer(
-    //   ECS_CONFIG.ADOT.CONTAINER_NAME,
-    //   {
-    //     image: ecs.ContainerImage.fromRegistry(ECS_CONFIG.ADOT.IMAGE),
-    //     essential: false,
-    //     memoryReservationMiB: ECS_CONFIG.ADOT.MEMORY_RESERVATION_MIB,
-    //     logging: new ecs.AwsLogDriver({
-    //       logGroup: this.logGroup,
-    //       streamPrefix: ECS_CONFIG.LOGS.STREAM_PREFIX_ADOT,
-    //     }),
-    //     environment: {
-    //       AWS_REGION: ECS_CONFIG.REGION,
-    //       OTEL_COLLECTOR_CONFIG: ECS_CONFIG.ADOT.OTEL_CONFIG_YAML,
-    //     },
-    //     command: escDotCommand,
-    //     healthCheck: {
-    //       command: ECS_CONFIG.ADOT.HEALTHCHECK.COMMAND,
-    //       interval: cdk.Duration.seconds(ECS_CONFIG.ADOT.HEALTHCHECK.INTERVAL_SECONDS),
-    //       timeout: cdk.Duration.seconds(ECS_CONFIG.ADOT.HEALTHCHECK.TIMEOUT_SECONDS),
-    //       retries: ECS_CONFIG.ADOT.HEALTHCHECK.RETRIES,
-    //       startPeriod: cdk.Duration.seconds(ECS_CONFIG.ADOT.HEALTHCHECK.START_PERIOD_SECONDS),
-    //     },
-    //     },
-    // );
+    const webContainer =
+      this.serviceConstruct.albFargate.taskDefinition.defaultContainer;
+    if (!webContainer)
+      throw new Error(
+        'Web container missing (withAlbFargateService should set it).',
+      );
 
-    // adot.addPortMappings(
-    //   { containerPort: ECS_CONFIG.ADOT.PORTS.OTLP_GRPC, protocol: ecs.Protocol.TCP },
-    //   { containerPort: ECS_CONFIG.ADOT.PORTS.OTLP_HTTP, protocol: ecs.Protocol.TCP },
-    //   { containerPort: ECS_CONFIG.ADOT.PORTS.HEALTH, protocol: ecs.Protocol.TCP },
-    // );
+    const awsRegion = cdk.Stack.of(this.scope).region;
 
-    // this.web.addContainerDependencies({
-    //   container: adot,
-    //   condition: ecs.ContainerDependencyCondition.START,
-    // });
+    this.adot = new AdotSidecarConstruct(
+      this.scope,
+      `${this.idPrefix}AdotSidecar`,
+      {
+        taskDefinition: this.serviceConstruct.albFargate.taskDefinition,
+        webContainer,
+        logGroup: this.logGroup,
 
-    // this.adot = adot;
+        containerName: adotBuilder.containerName,
+        image: adotBuilder.image,
+        memoryReservationMiB: adotBuilder.memoryReservationMiB,
+
+        awsRegion,
+        otelCollectorConfig: adotBuilder.otelCollectorConfig,
+        command: adotBuilder.command,
+        logStreamPrefix: adotBuilder.logStreamPrefix,
+
+        ports: adotBuilder.ports,
+        healthCheck: adotBuilder.healthCheck,
+      },
+    );
+
     return this;
   }
 
   public withXRayPermissions(): this {
-    if (!this.service)
+    if (!this.serviceConstruct)
       throw new Error(
         'Call withAlbFargateService() before withXRayPermissions().',
       );
 
-    this.service.taskDefinition.taskRole.addToPrincipalPolicy(
+    this.serviceConstruct.albFargate.taskDefinition.taskRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords'],
         resources: ['*'],
@@ -292,86 +301,82 @@ export class EcsBuilder {
     return this;
   }
 
-  public allowAlbToTasks(): this {
-    // if (!this.service)
-    //   throw new Error('Call withAlbFargateService() before allowAlbToTasks().');
+  public allowAlbToTasks(builder: ALB_TO_TASKS_BUILDER): this {
+    if (!this.serviceConstruct)
+      throw new Error('Call withAlbFargateService() before allowAlbToTasks().');
 
-    // this.service.service.connections.allowFrom(
-    //   this.service.loadBalancer,
-    //   ec2.Port.tcp(ECS_CONFIG.SERVICE.CONTAINER_PORT),
-    //   ECS_CONFIG.SECURITY_GROUP.ALB_TO_TASK_RULE_DESC,
-    // );
+    this.serviceConstruct.albFargate.service.connections.allowFrom(
+      this.serviceConstruct.albFargate.loadBalancer,
+      ec2.Port.tcp(builder.containerPort),
+      builder.albToTaskRuleDesc,
+    );
 
-    // this.service.loadBalancer.connections.allowFrom(
-    //   ec2.Peer.anyIpv4(),
-    //   ec2.Port.tcp(ECS_CONFIG.SERVICE.LISTENER_PORT),
-    //   'Allow HTTPS from internet',
-    // );
+    this.serviceConstruct.albFargate.loadBalancer.connections.allowFrom(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(builder.listenerPort),
+      'Allow HTTPS from internet',
+    );
 
     return this;
   }
 
-  public withHealthCheck(): this {
-    // const { ECS_CONFIG } = Config;
-
-    if (!this.service)
+  public withHealthCheck(builder: HEALTH_CHECK_BUILDER): this {
+    if (!this.serviceConstruct)
       throw new Error('Call withAlbFargateService() before withHealthCheck().');
 
-    // this.service.targetGroup.configureHealthCheck({
-    //   path: ECS_CONFIG.SERVICE.HEALTHCHECK.PATH,
-    //   healthyHttpCodes: ECS_CONFIG.SERVICE.HEALTHCHECK.HEALTHY_HTTP_CODES,
-    //   interval: cdk.Duration.seconds(ECS_CONFIG.SERVICE.HEALTHCHECK.INTERVAL_SECONDS),
-    //   timeout: cdk.Duration.seconds(ECS_CONFIG.SERVICE.HEALTHCHECK.TIMEOUT_SECONDS),
-    //   healthyThresholdCount: ECS_CONFIG.SERVICE.HEALTHCHECK.HEALTHY_THRESHOLD,
-    //   unhealthyThresholdCount: ECS_CONFIG.SERVICE.HEALTHCHECK.UNHEALTHY_THRESHOLD,
-    // });
+    this.serviceConstruct.albFargate.targetGroup.configureHealthCheck({
+      path: builder.path,
+      healthyHttpCodes: builder.healthyHttpCodes,
+      interval: cdk.Duration.seconds(builder.intervalSeconds),
+      timeout: cdk.Duration.seconds(builder.timeoutSeconds),
+      healthyThresholdCount: builder.healthyThresholdCount,
+      unhealthyThresholdCount: builder.unhealthyThresholdCount,
+    });
 
     return this;
   }
 
-  public withAlerts(): this {
-    // const { ECS_CONFIG } = Config;
-
+  public withAlerts(builder: ALERTS_BUILDER): this {
     if (!this.cluster)
       throw new Error('Call withCluster() before withAlerts().');
 
-    // const topic = new sns.Topic(
-    //   this.scope,
-    //   `${this.idPrefix}${ECS_CONFIG.ALERTS.TOPIC_ID}`,
-    //   {
-    //     displayName: ECS_CONFIG.ALERTS.DISPLAY_NAME,
-    //   },
-    // );
+    const topic = new sns.Topic(
+      this.scope,
+      `${this.idPrefix}${builder.topicId}`,
+      {
+        displayName: builder.displayName,
+      },
+    );
 
-    // for (const email of ECS_CONFIG.ALERTS.EMAIL_SUBSCRIPTIONS) {
-    //   topic.addSubscription(new subs.EmailSubscription(email));
-    // }
+    for (const email of builder.emailSubscriptions) {
+      topic.addSubscription(new subs.EmailSubscription(email));
+    }
 
-    // const rule = new events.Rule(
-    //   this.scope,
-    //   `${this.idPrefix}${ECS_CONFIG.ALERTS.TASK_STOPPED_RULE_ID}`,
-    //   {
-    //     eventPattern: {
-    //       source: ['aws.ecs'],
-    //       detailType: ['ECS Task State Change'],
-    //       detail: {
-    //         clusterArn: [this.cluster.clusterArn],
-    //         lastStatus: ['STOPPED'],
-    //         stopCode: ECS_CONFIG.ALERTS.TASK_STOPPED_STOP_CODES,
-    //       },
-    //     },
-    //   },
-    // );
+    const rule = new events.Rule(
+      this.scope,
+      `${this.idPrefix}${builder.taskStoppedRuleId}`,
+      {
+        eventPattern: {
+          source: ['aws.ecs'],
+          detailType: ['ECS Task State Change'],
+          detail: {
+            clusterArn: [this.cluster.clusterArn],
+            lastStatus: ['STOPPED'],
+            stopCode: builder.taskStoppedStopCodes,
+          },
+        },
+      },
+    );
 
-    // rule.addTarget(new targets.SnsTopic(topic));
+    rule.addTarget(new targets.SnsTopic(topic));
 
-    // this.alertsTopic = topic;
-    // this.stoppedRule = rule;
+    this.alertsTopic = topic;
+    this.stoppedRule = rule;
+
     return this;
   }
 
   public outputs(): this {
-
     return this;
   }
 }
