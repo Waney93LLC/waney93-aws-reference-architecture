@@ -13,7 +13,6 @@ import {
 import { SharedServicesStack } from './shared-services';
 import { Stage } from '../config/environment';
 import { SsmParameterResolver } from '../config/ssm-parameter-resolver';
-import { RdsConfig } from '../interfaces/rds';
 import { Network } from '../constructs/network';
 
 /**
@@ -41,13 +40,12 @@ export class BaseInfrastructureStack extends cdk.Stack {
     const builder = new BaseInfrastructureBuilder(this, 'BaseInfrastructureBuilder', {
       network: BaseInfrastructureStack.getNetworkConfig(this),
       stage: props.stage,
-      rdsBastion: BaseInfrastructureStack.getBastionConfig(this, props.stage),
       rds: BaseInfrastructureStack.getRdsConfig(this),
     })
       .withNetwork()
       .withRdsBastion()
       .withAppClientSecurityGroup()
-      .withRds()
+      .withAuroraDB()
       .outputs();
 
       this.network = builder.network ;
@@ -92,10 +90,7 @@ export class BaseInfrastructureStack extends cdk.Stack {
     }
 
   static getBastionConfig(scope: Construct, stage: Stage): RdsBastionConfig {
-    const resourceConfig = new ResourceConfigFacade(
-      this.props.parameterResolver,
-      getResourceParameterConfig(this.stage),
-    );
+
     return {
       userDataCommands: [
         'set -eux',

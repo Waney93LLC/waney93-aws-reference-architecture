@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import { BaseInfrastructureBuilderProps } from '../interfaces/base-infrastructure';
+import { BaseInfrastructureProps } from '../interfaces/base-infrastructure';
 import { Network } from '../constructs/network';
 import { RdsBastion } from '../constructs/rds-bastion/rds-bastion';
 import {
@@ -10,15 +10,16 @@ import {
   Stage,
 } from '../config/environment';
 import { AuroraDB } from '../constructs/rds/aurora';
-import { SecurityGroupConfig } from '../interfaces/common';
 import {
   IParameterResolver,
   ResolvedDatabaseCredentials,
 } from '../interfaces/parameter-resolver';
-
-import { BastionIamRole } from '../constructs/rds-bastion/bastion-iam-role';
-import { RdsBastionConfig } from '../interfaces/bastion';
-import { IRdsIngressSource } from '../interfaces/rds';
+import { AuroraDbConfig, RdsBastionConfig } from '../interfaces/bastion';
+import {
+  IRdsAppUserConfig,
+  IRdsClusterConfig,
+  IRdsIngressSource,
+} from '../interfaces/rds';
 
 /**
  * BaseInfrastructureBuilder
@@ -33,12 +34,9 @@ import { IRdsIngressSource } from '../interfaces/rds';
  */
 export class BaseInfrastructureBuilder {
   public network?: Network;
-  private readonly scope: Construct;
-  private readonly idPrefix: string;
-  private readonly props: Required<BaseInfrastructureBuilderProps>;
+  private resolvedCredentials?: ResolvedDatabaseCredentials;
 
   private appClientSg?: ec2.SecurityGroup;
-  private data?: AuroraDB;
   private bastion?: RdsBastion;
 
   /**
@@ -49,17 +47,10 @@ export class BaseInfrastructureBuilder {
    * @param props - The builder properties
    */
   constructor(
-    scope: Construct,
-    idPrefix: string,
-    props: BaseInfrastructureBuilderProps,
-  ) {
-    this.scope = scope;
-    this.idPrefix = idPrefix;
-
-    this.props = {
-      ...props,
-    } as Required<BaseInfrastructureBuilderProps>;
-  }
+    readonly scope: Construct,
+    readonly idPrefix: string,
+    readonly props: BaseInfrastructureProps,
+  ) {}
 
   /**
    * withNetwork adds a VPC and related network resources to the builder.
@@ -78,18 +69,10 @@ export class BaseInfrastructureBuilder {
     if (!this.network) {
       throw new Error('withNetwork() must be called before withRdsBastion().');
     }
-    const roleProvider = new BastionIamRole(
-      this.scope,
-      `${this.idPrefix}-BastionRole`,
-    );
 
     this.bastion = new RdsBastion(this.scope, `${this.idPrefix}-RdsBastion`, {
       network: { vpc: this.network.vpc },
-      securityGroup: config.securityGroup,
-      instance: config.instance,
-      roleProvider,
-      runCommandDocumentName: config.runCommandDocumentName,
-      migrationStorage: config.migrationStorage,
+      ...config,
     });
 
     return this;
@@ -112,55 +95,70 @@ export class BaseInfrastructureBuilder {
     return this;
   }
 
-  public withAuroraDB(): this {
-    if (!this.props.rds)
-      throw new Error('withAuroraDB() called but rds config is not set.');
-    if (!this.network) throw new Error('Call withNetwork() before withAuroraDB().');
+  public withAuroraDB(config: AuroraDbConfig): this {
+    if (!this.network)
+      throw new Error('Call withNetwork() before withAuroraDB().');
     if (!this.bastion)
       throw new Error('Call withRdsBastion() before withAuroraDB().');
     if (!this.appClientSg)
-      throw new Error('Call withAppClientSecurityGroup() before withAuroraDB().');
-
-    const ingressSources: IRdsIngressSource[] = [
-      {
-        securityGroup: this.bastion.securityGroup,
-        portRules: this.props.rds.bastionPortRules,
-      },
-      {
-        securityGroup: this.appClientSg,
-        portRules: this.props.rds.appClientPortRules,
-      },
-    ];
+      throw new Error(
+        'Call withAppClientSecurityGroup() before withAuroraDB().',
+      );
 
     const credentials = this.getRdsClusterConfig(
-      this.props.rds.parameterResolver,
+      config.parameterResolver,
       this.props.stage,
     );
 
-    this.data = new AuroraDB(this.scope, `${this.idPrefix}-Data`, {
+    new AuroraDB(this.scope, `${this.idPrefix}-Data`, {
       network: { vpc: this.network.vpc },
-      ingressSources,
-      cluster: {
-        id: this.props.rds.id,
-        name: this.props.rds.name,
-        databaseName: this.props.rds.databaseName,
-        deletionProtection: this.props.rds.deletionProtection,
-        capacity: this.props.rds.capacity,
-        readers: this.props.rds.readers,
-        admin: {
-          username: credentials.adminUsername,
-          secretName: credentials.loginSecretName,
-        },
-      },
-      appUser: {
-        username: credentials.appUserName,
-        secretName: credentials.appUserSecretName,
-      },
+      ingressSources: this.buildRdsIngressSources(config),
+      cluster: this.buildRdsClusterConfig(config, credentials),
+      appUser: this.buildRdsAppUserConfig(credentials),
     });
 
     return this;
   }
 
+  private buildRdsIngressSources(config: AuroraDbConfig): IRdsIngressSource[] {
+    return [
+      {
+        securityGroup: this.bastion!.securityGroup,
+        portRules: config.bastionPortRules,
+      },
+      {
+        securityGroup: this.appClientSg!,
+        portRules: config.appClientPortRules,
+      },
+    ];
+  }
+
+  private buildRdsClusterConfig(
+    config: AuroraDbConfig,
+    credentials: ResolvedDatabaseCredentials,
+  ): IRdsClusterConfig {
+    return {
+      id: config.id,
+      name: config.name,
+      databaseName: config.databaseName,
+      deletionProtection: config.deletionProtection,
+      capacity: config.capacity,
+      readers: config.readers,
+      admin: {
+        username: credentials.adminUsername,
+        secretName: credentials.loginSecretName,
+      },
+    };
+  }
+
+  private buildRdsAppUserConfig(
+    credentials: ResolvedDatabaseCredentials,
+  ): IRdsAppUserConfig {
+    return {
+      username: credentials.appUserName,
+      secretName: credentials.appUserSecretName,
+    };
+  }
 
   private getRdsClusterConfig(
     parameterResolver: IParameterResolver,
@@ -177,19 +175,16 @@ export class BaseInfrastructureBuilder {
    * Optional: define CDK outputs in one place.
    */
   public outputs(): this {
-    if (this.network) {
+    if (this.network && this.props.exportNames?.vpcId) {
       new cdk.CfnOutput(this.scope, 'VpcId', {
         value: this.network.vpc.vpcId,
-        exportName:
-          ResourceConfigFacade.ExportedValueName.network?.vpcId || 'vpc_id',
+        exportName: this.props.exportNames.vpcId,
       });
     }
-    if (this.appClientSg) {
+    if (this.appClientSg && this.props.exportNames?.appClientSgId) {
       new cdk.CfnOutput(this.scope, 'AppClientSgId', {
         value: this.appClientSg.securityGroupId,
-        exportName:
-          ResourceConfigFacade.ExportedValueName.network?.appClientSgId ||
-          'app_client_sg_id',
+        exportName: this.props.exportNames.appClientSgId,
       });
     }
     return this;

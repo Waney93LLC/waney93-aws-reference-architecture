@@ -1,5 +1,7 @@
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { IParameterResolver } from './parameter-resolver';
+import { IRdsClusterConfig, IRdsPortRule } from './rds';
 
 // (I) — Interfaces are split by concern.
 // No consumer is forced to depend on props it doesn't use.
@@ -41,7 +43,7 @@ export interface RdsBastionProps {
   network: IBastionNetworkConfig;
   securityGroup: IBastionSecurityGroupConfig;
   instance: IBastionInstanceConfig;
-  roleProvider: IBastionRoleProvider; 
+  roleProvider?: IBastionRoleProvider; 
   runCommandDocumentName: string;
   migrationStorage?: IBastionStorageConfig;
 }
@@ -58,6 +60,19 @@ export interface RdsBastionConfig {
   instance: IBastionInstanceConfig;
   runCommandDocumentName: string;
   migrationStorage?: IBastionStorageConfig;
+  roleProvider?: IBastionRoleProvider;
+}
+
+export interface AuroraDbConfig {
+  parameterResolver: IParameterResolver;
+  id: string;
+  name: string;
+  databaseName: string;
+  deletionProtection: boolean;
+  capacity?: { min: number; max: number };
+  readers?: IRdsClusterConfig['readers'];
+  bastionPortRules: IRdsPortRule[];
+  appClientPortRules: IRdsPortRule[];
 }
 
 export interface BastionConfig {

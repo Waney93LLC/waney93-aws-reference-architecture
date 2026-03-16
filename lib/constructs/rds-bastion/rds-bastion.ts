@@ -35,9 +35,7 @@ export class RdsBastion extends Construct {
     this.securityGroup = sgConstruct.securityGroup;
 
     const roleProvider =
-      props.roleProvider instanceof BastionIamRole
-        ? props.roleProvider
-        : props.roleProvider;
+      props.roleProvider ?? new BastionIamRole(this, 'BastionRole');
 
     this.role = roleProvider.role;
 

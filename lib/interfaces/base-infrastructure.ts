@@ -2,9 +2,8 @@
 import * as cdk from 'aws-cdk-lib';
 import { InterfaceVpcEndpointAwsService } from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import {RdsBastionConfig } from './bastion';
 import { Stage } from '../config/environment';
-import { RdsConfig } from './rds';
+
 
 
 /**
@@ -16,29 +15,14 @@ import { RdsConfig } from './rds';
  */
 export interface BaseInfrastructureProps {
   stage: Stage;
-  network: NETWORK_CONFIG;
-  rds?: RdsConfig;
+  network: NetworkConfig;
+  exportNames?: {
+    vpcId?: string;
+    appClientSgId?: string;
+  };
 }
 
-/**
- * BaseInfrastructureConstructProps
- *
- * Purpose:
- *   Properties required by BaseInfrastructureConstruct. Typically a normalized subset
- *   of BaseInfrastructureProps.
- */
-export interface BaseInfrastructureConstructProps {}
 
-/**
- * BaseInfrastructureBuilderProps
- *
- * Purpose:
- *   Constructor props for BaseInfrastructureBuilder.
- *   Often you can alias this to BaseInfrastructureProps.
- */
-export interface BaseInfrastructureBuilderProps extends BaseInfrastructureProps {
-
-}
 
 /**
  * BaseInfrastructureStackProps
@@ -50,13 +34,13 @@ export interface BaseInfrastructureStackProps extends cdk.StackProps {
   stage:Stage;
 }
 
-export type NETWORK_CONFIG = {
+export type NetworkConfig = {
   maxAzs?: number; // default 2
   natGateways?: number; // default 1 (prod: 2)
   vpcCidr?: string; // optional CIDR
   logGrp: LogGroup;
   vpcEndpoints?: InterfaceVpcEndpointAwsService[];
-  cidrMaskPublic?: number; 
+  cidrMaskPublic?: number;
   cidrMaskPrivate: number;
   idPrefix: string;
-}   
+};   
