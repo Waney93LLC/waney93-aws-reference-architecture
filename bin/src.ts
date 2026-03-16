@@ -19,6 +19,7 @@ new Waney93CicdObservabilityStack(app, 'Waney93CicdObservabilityStack', {
 
 new Waney93CICDStack(app, 'Waney93CICDStack', {
   stage: stage,
+  config: pipelineConfig,
   description: 'CI/CD pipeline stack for Waney93 AWS Reference Architecture',
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,

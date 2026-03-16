@@ -1,12 +1,12 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as pipeline from 'aws-cdk-lib/pipelines';
-import { getEnvConfig } from '../../config/environment';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { CICDStackProps } from './cicd-stack-props';
+import { Waney93CICDStackProps } from './cicd-stack-props';
 import { PipelineConstruct } from '../../constructs/pipeline';
 import { FoundationsStage } from '../../stages/foundations';
 import { AppStage } from '../../stages/app';
+import { getWaney93PipelineAConfig } from '../../config/pipelines/waney93';
 
 /**
  * Waney93CICDStack
@@ -25,22 +25,21 @@ export class Waney93CICDStack extends cdk.Stack {
    * @param id - The stack ID
    * @param props - The stack properties
    */
-  constructor(scope: Construct, id: string, props: CICDStackProps) {
+  constructor(scope: Construct, id: string, props: Waney93CICDStackProps) {
     super(scope, id, props);
-    const { stage, env } = props;
+    const { stage, env, config } = props;
 
-    const config = getEnvConfig(stage);
     if (!config) {
       throw new Error(`No config found for stage: ${stage}`);
     }
     const connectionArn = ssm.StringParameter.valueForStringParameter(
       this,
-      config.pipeline.codestar.connectionArnParameter,
+      config.envConfig.pipeline.codestar.connectionArnParameter,
     );
     if (!connectionArn) {
       throw new Error(`No CodestarConnection ARN found for stage: ${stage}`);
     }
-    const { pipeline } = config;
+    const { pipeline } = config.envConfig;
     if (!pipeline.name) {
       throw new Error(`No pipeline name found for stage: ${stage}`);
     }
@@ -95,11 +94,16 @@ export class Waney93CICDStack extends cdk.Stack {
     //     ],
     //   },
     // );
-    const foundationsWave = pipelineConstruct.pipeline.addWave(`${stage}-Foundations`);
+   
+    const foundationsWave = pipelineConstruct.pipeline.addWave(
+      `${stage}-Foundations`,
+    );
     const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
       env: env,
-      stage
+      config: config,
+      stage: props.stage,
     });
+
     if (process.env.SKIP_FOUNDATIONS !== 'true') {
       foundationsWave.addStage(sharedStage);
     }

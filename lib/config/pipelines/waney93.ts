@@ -12,6 +12,7 @@ import {
   EnvironmentConfig,
 } from '../environment';
 import { SsmParameterResolver } from '../ssm-parameter-resolver';
+import { IPipelineAConfig } from '../../interfaces/pipeline';
 
 // ─── Pipeline-level infrastructure constants ──────────────────────────────────
 //
@@ -31,19 +32,21 @@ const MIGRATION_STORAGE = {
 
 // ─── Public entry point ───────────────────────────────────────────────────────
 
-export interface Waney93PipelineAConfig {
-  baseInfrastructure: IBaseInfrastructureConfig;
-  sharedServices: ISharedServicesConfig;
+
+
+
+export interface Waney93PipelineAConfig extends IPipelineAConfig {
+  readonly envConfig: EnvironmentConfig;
 }
 
 export function getWaney93PipelineAConfig(
   scope: Construct,
   stage: Stage,
 ): Waney93PipelineAConfig {
-  // Single call — env is passed down so all builders share one resolved instance.
   const env = getEnvConfig(stage);
 
   return {
+    envConfig: env,
     baseInfrastructure: buildBaseInfrastructureConfig(scope, env),
     sharedServices: buildSharedServicesConfig(scope, stage, env),
   };
