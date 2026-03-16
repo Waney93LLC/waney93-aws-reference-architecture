@@ -7,12 +7,15 @@ import {BastionConfig } from '../interfaces/bastion';
 import { ResourceConfigFacade } from '../config/environment';
 
 /**
- * Bastion host module (SSM-managed) for accessing RDS in the VPC.
- * - Creates: Security Group + EC2 Instance + IAM Role
- * - Optionally: SSM Document for running migration steps sourced from S3
- *
- * NOTE: Outputs (CfnOutput) must be created from a Stack scope, not a Construct.
- * Emit outputs from the parent Stack if needed.
+ * RdsBastion
+ * 
+ * Purpose: This construct defines a bastion host for managing RDS operations. It creates an EC2 instance with SSM capabilities, allowing secure access to RDS instances without exposing them to the public internet. The construct also sets up necessary IAM roles and security groups for secure operation.
+ * 
+ * Key Features:
+ * - Allows runbook automation access to RDS instances via SSM.
+ * - Configurable instance type, AMI, and user data for the bastion host.
+ * - Security group configuration to control access to the bastion host.
+ * - Optional integration with a migration storage bucket for operations that require temporary storage.
  */
 export class RdsBastion extends Construct {
   public readonly securityGroup: ec2.SecurityGroup;
@@ -35,8 +38,7 @@ export class RdsBastion extends Construct {
       this.securityGroup.addEgressRule(ec2.Peer.anyIpv4(), port, description);
     }
 
-    this.role = bastionConfig.role;
- 
+    this.role = this.createBastionRole();
 
     // Allow sending SSM command against the custom document (if you create it)
     this.role.addToPrincipalPolicy(
@@ -52,11 +54,8 @@ export class RdsBastion extends Construct {
       }),
     );
 
-
     if (props.migrationStorageBucketArn) {
-      const bucketArn = cdk.Fn.importValue(
-        props.migrationStorageBucketArn,
-      );
+      const bucketArn = cdk.Fn.importValue(props.migrationStorageBucketArn);
       const bucket = cdk.aws_s3.Bucket.fromBucketArn(
         this,
         'ImportedMigrationStorageBucket',
@@ -82,4 +81,20 @@ export class RdsBastion extends Construct {
     }
   }
 
+  /**
+   * The instance role is created with the base permissions required for SSM and Secrets Manager access. Additional permissions can be added as needed, such as access to specific S3 buckets for migration operations.
+   * @returns iam.Role
+   */
+  private createBastionRole(): iam.Role {
+    return new iam.Role(this, 'BastionRole', {
+      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
+      description: 'EC2 role for SSM-managed bastion',
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName(
+          'AmazonSSMManagedInstanceCore',
+        ),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'),
+      ],
+    });
+  }
 }

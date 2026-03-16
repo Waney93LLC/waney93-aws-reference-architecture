@@ -13,7 +13,6 @@ import { PortRule, SecurityGroupConfig } from './common';
 
 export interface BastionInstanceConfig {
   type: ec2.InstanceType;
-  role: iam.Role;
   ami: ec2.IMachineImage;
   userData?: ec2.UserData;
   tagKey?: string;

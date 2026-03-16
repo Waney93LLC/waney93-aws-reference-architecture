@@ -23,13 +23,12 @@ export class RdsBastionConfigBuilder {
 
   public build(): BastionBaseConfig {
     const userData = this.createUserData();
-    const role = this.createBastionRole();
     const securityGroup = this.createBastionSecurityGroup();
     
 
     return {
       subnetSelection: this.props.subnetSelection,
-      bastionConfig: this.createBastionInstanceConfig(userData, role),
+      bastionConfig: this.createBastionInstanceConfig(userData),
       bastionSecGrpConfig: this.createSecurityGroupConfig(securityGroup),
     };
   }
@@ -44,26 +43,13 @@ export class RdsBastionConfigBuilder {
     return userData;
   }
 
-  private createBastionRole(): iam.Role {
-    return new iam.Role(this.scope, 'BastionRole', {
-      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
-      description: 'EC2 role for SSM-managed bastion',
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName(
-          'AmazonSSMManagedInstanceCore',
-        ),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'),
-      ],
-    });
-  }
+
 
   private createBastionInstanceConfig(
     userData: ec2.UserData,
-    role: iam.Role,
   ): BastionInstanceConfig {
     return {
       type: this.props.instance.type,
-      role,
       ami: this.props.instance.ami,
       userData,
     };
