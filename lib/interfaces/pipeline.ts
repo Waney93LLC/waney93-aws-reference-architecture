@@ -1,7 +1,9 @@
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import * as cdk from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { IBaseInfrastructureConfig } from './base-infrastructure';
 import { ISharedServicesConfig } from './shared-services';
+import { Stage } from '../config/environment';
 
 /**
  * PipelineConstructProps defines the properties required to configure the reusable PipelineConstruct.
@@ -31,4 +33,9 @@ export interface PipelineConstructProps {
 export interface PipelineAConfig {
   baseInfrastructure: IBaseInfrastructureConfig;
   sharedServices: ISharedServicesConfig;
+}
+
+export interface FoundationStageProps{
+  stage: Stage;
+  env?: cdk.Environment;
 }

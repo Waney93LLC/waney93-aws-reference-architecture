@@ -16,10 +16,12 @@ export interface EnvironmentConfig {
     description: string;
     repository: { owner: string; name: string; branch: string };
     codestar: { connectionArnParameter: string };
-    notifications?: {
-      emailParameter: string;
-    };
+    notifications?: { emailParameter: string };
     skip_foundations?: boolean;
+    bastion: {
+      tagKey: string;
+      tagValue: string;
+    };
   };
 }
 
@@ -55,19 +57,23 @@ const STAGE_OVERRIDES: Record<Stage, { branch: string }> = {
 
 export function getEnvConfig(stage: Stage): EnvironmentConfig {
   const { branch } = STAGE_OVERRIDES[stage];
-
   const pascalStage = stage[0].toUpperCase() + stage.slice(1);
+  const pipelineName = `Waney93${pascalStage}Pipeline`;
 
   return {
     stage,
     cognito: { acmCertificateArnParameter: ACM_CERTIFICATE_ARN_PARAM },
     pipeline: {
-      name: `Waney93${pascalStage}Pipeline`,
+      name: pipelineName,
       description: `Pipeline for the Waney93 ${stage} stage`,
       repository: { ...REPO, branch },
       codestar: { connectionArnParameter: CODESTAR_CONNECTION_ARN_PARAM },
       notifications: { emailParameter: NOTIFICATIONS_EMAIL_PARAM },
       skip_foundations: stage === 'prod',
+      bastion: {
+        tagKey: 'Name',
+        tagValue: `${pipelineName.toLowerCase()}-bastion`,
+      },
     },
   };
 }

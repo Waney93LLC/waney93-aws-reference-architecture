@@ -14,7 +14,7 @@ import { CognitoSecretsConstruct } from '../constructs/cognito/cognito-secrets-c
 import { OpsRunbookConstruct } from '../constructs/ops-runbook';
 import { S3StorageConstruct } from '../constructs/s3storage';
 import { EventRouter } from '../constructs/event-router';
-import {EventRouterProps} from '../interfaces/EventRouter';
+import {EventRouterProps} from '../interfaces/shared-services';
 
 /**
  * SharedServicesBuilder

@@ -6,12 +6,32 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { RetentionDays, LogGroup } from 'aws-cdk-lib/aws-logs';
 import { IBaseInfrastructureConfig } from '../../interfaces/base-infrastructure';
 import { ISharedServicesConfig } from '../../interfaces/shared-services';
-import { Stage } from '../environment';
-import { SsmParameterResolver } from '../ssm-parameter-resolver';
 import {
+  Stage,
+  getEnvConfig,
   ResourceConfigFacade,
   getResourceParameterConfig,
+  EnvironmentConfig,
 } from '../environment';
+import { SsmParameterResolver } from '../ssm-parameter-resolver';
+
+// ─── Pipeline-level infrastructure constants ──────────────────────────────────
+//
+// Only values that are genuinely infrastructure-specific and have no natural
+// home in EnvironmentConfig live here. Bastion identity is now in getEnvConfig.
+// CDK export names are infrastructure topology decisions — they stay here.
+
+const EXPORTS = {
+  vpcId: 'pipeline-a-vpc-id',
+  appClientSgId: 'pipeline-a-app-client-sg-id',
+  migrationStorageBucketName: 'pipeline-a-migration-storage-bucket-name',
+} as const;
+
+const MIGRATION_STORAGE = {
+  bucketName: 'waney93-pipeline-a-migration-storage',
+} as const;
+
+// ─── Public entry point ───────────────────────────────────────────────────────
 
 export interface Waney93PipelineAConfig {
   baseInfrastructure: IBaseInfrastructureConfig;
@@ -22,24 +42,28 @@ export function getWaney93PipelineAConfig(
   scope: Construct,
   stage: Stage,
 ): Waney93PipelineAConfig {
+  // Single call — env is passed down so all builders share one resolved instance.
+  const env = getEnvConfig(stage);
+
   return {
-    baseInfrastructure: buildBaseInfrastructureConfig(scope),
-    sharedServices: buildSharedServicesConfig(scope, stage),
+    baseInfrastructure: buildBaseInfrastructureConfig(scope, env),
+    sharedServices: buildSharedServicesConfig(scope, stage, env),
   };
 }
 
-// ─── Base infrastructure ─────────────────────────────────────────────────────
+// ─── Base infrastructure ──────────────────────────────────────────────────────
 
 function buildBaseInfrastructureConfig(
   scope: Construct,
+  env: EnvironmentConfig,
 ): IBaseInfrastructureConfig {
   return {
     network: buildNetworkConfig(scope),
-    bastion: buildBastionConfig(),
+    bastion: buildBastionConfig(env),
     rds: buildRdsConfig(scope),
     exportNames: {
-      vpcId: 'pipeline-a-vpc-id',
-      appClientSgId: 'pipeline-a-app-client-sg-id',
+      vpcId: EXPORTS.vpcId,
+      appClientSgId: EXPORTS.appClientSgId,
     },
   };
 }
@@ -60,7 +84,9 @@ function buildNetworkConfig(
   };
 }
 
-function buildBastionConfig(): IBaseInfrastructureConfig['bastion'] {
+function buildBastionConfig(
+  env: EnvironmentConfig,
+): IBaseInfrastructureConfig['bastion'] {
   const userData = ec2.UserData.forLinux();
   userData.addCommands(
     'set -eux',
@@ -74,8 +100,8 @@ function buildBastionConfig(): IBaseInfrastructureConfig['bastion'] {
       ami: ec2.MachineImage.latestAmazonLinux2023(),
       userData,
       detailedMonitoring: false,
-      tagKey: 'Name',
-      tagValue: 'waney93-bastion',
+      tagKey: env.pipeline.bastion.tagKey, 
+      tagValue: env.pipeline.bastion.tagValue,
     },
     securityGroup: {
       portRules: [
@@ -88,8 +114,7 @@ function buildBastionConfig(): IBaseInfrastructureConfig['bastion'] {
     },
     runCommandDocumentName: 'AWS-RunShellScript',
     migrationStorage: {
-      migrationStorageBucketExportName:
-        'pipeline-a-migration-storage-bucket-name',
+      migrationStorageBucketExportName: EXPORTS.migrationStorageBucketName,
     },
   };
 }
@@ -116,19 +141,18 @@ function buildRdsConfig(scope: Construct): IBaseInfrastructureConfig['rds'] {
   };
 }
 
-// ─── Shared services ─────────────────────────────────────────────────────────
+// ─── Shared services ──────────────────────────────────────────────────────────
 
 function buildSharedServicesConfig(
   scope: Construct,
   stage: Stage,
+  env: EnvironmentConfig,
 ): ISharedServicesConfig {
   return {
     ecr: buildEcrConfig(),
-    oidc: buildOidcConfig(),
-    migrationOps: buildMigrationOpsConfig(scope, stage),
+    oidc: buildOidcConfig(env),
+    migrationOps: buildMigrationOpsConfig(scope, stage, env),
     migrationStorage: buildMigrationStorageConfig(),
-    // cognito is omitted — Pipeline A does not require it.
-    // Add it here when an ACM certificate is available.
   };
 }
 
@@ -143,12 +167,16 @@ function buildEcrConfig(): ISharedServicesConfig['ecr'] {
   };
 }
 
-function buildOidcConfig(): ISharedServicesConfig['oidc'] {
+function buildOidcConfig(
+  env: EnvironmentConfig,
+): ISharedServicesConfig['oidc'] {
+  // Repository is now derived from EnvironmentConfig — the application repo
+  // that gets deployed is the same one the pipeline tracks.
   return {
     applicationRepository: {
-      owner: 'Waney93LLC',
-      name: 'djangoproject',
-      branch: 'main',
+      owner: env.pipeline.repository.owner,
+      name: env.pipeline.repository.name,
+      branch: env.pipeline.repository.branch,
     },
     provider: {
       name: 'GitHub',
@@ -167,8 +195,7 @@ function buildOidcConfig(): ISharedServicesConfig['oidc'] {
         'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
       },
       stringLikeConditions: {
-        'token.actions.githubusercontent.com:sub':
-          'repo:Waney93LLC/djangoproject:*',
+        'token.actions.githubusercontent.com:sub': `repo:${env.pipeline.repository.owner}/${env.pipeline.repository.name}:*`,
       },
     },
   };
@@ -177,9 +204,8 @@ function buildOidcConfig(): ISharedServicesConfig['oidc'] {
 function buildMigrationOpsConfig(
   scope: Construct,
   stage: Stage,
+  env: EnvironmentConfig,
 ): ISharedServicesConfig['migrationOps'] {
-  // ResourceConfigFacade is constructed here, where its resolved values
-  // are needed — not inside the stack constructor.
   const resourceConfig = new ResourceConfigFacade(
     new SsmParameterResolver(scope),
     getResourceParameterConfig(stage),
@@ -191,8 +217,8 @@ function buildMigrationOpsConfig(
     runCommandDocumentName: 'BastionMigrationDocument',
     target: {
       instance: {
-        tagKey: 'Name',
-        tagValue: 'waney93-bastion',
+        tagKey: env.pipeline.bastion.tagKey, // same source as buildBastionConfig
+        tagValue: env.pipeline.bastion.tagValue,
       },
     },
     script: {
@@ -206,7 +232,7 @@ function buildMigrationOpsConfig(
 function buildMigrationStorageConfig(): ISharedServicesConfig['migrationStorage'] {
   return {
     s3Bucket: {
-      name: 'waney93-pipeline-a-migration-storage',
+      name: MIGRATION_STORAGE.bucketName,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       bucketId: 'MigrationStorageBucket',
