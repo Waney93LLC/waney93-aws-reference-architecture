@@ -44,21 +44,24 @@ export class Waney93CicdObservabilityStack extends cdk.Stack {
 
     const topic = new sns.Topic(this, 'CicdNotificationsTopic');
     topic.addSubscription(new subs.EmailSubscription(emailNotification));
-    new SharedServicesBuilder(this, 'SharedServices', {}).withObservability({
-      routes: [
-        {
-          name: 'PipelineExecStateChanges',
-          eventPattern: {
-            source: ['aws.codepipeline'],
-            detailType: ['CodePipeline Pipeline Execution State Change'],
-            detail: {
-              pipeline: [config.pipeline.name],
-              state: ['FAILED', 'CANCELED', 'SUPERSEDED'],
-            },
-          },
-          targets: [new targets.SnsTopic(topic)],
-        },
-      ],
-    });
+   new SharedServicesBuilder(this, 'SharedServicesBuilder', {
+     stage: props.stage,
+     config: props.config,
+   }).withObservability({
+     routes: [
+       {
+         name: 'PipelineExecStateChanges',
+         eventPattern: {
+           source: ['aws.codepipeline'],
+           detailType: ['CodePipeline Pipeline Execution State Change'],
+           detail: {
+             pipeline: [config.pipeline.name],
+             state: ['FAILED', 'CANCELED', 'SUPERSEDED'],
+           },
+         },
+         targets: [new targets.SnsTopic(topic)],
+       },
+     ],
+   });
   }
 }

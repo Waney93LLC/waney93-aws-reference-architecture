@@ -129,3 +129,9 @@ export interface OpsRunbookConstructProps {
   migrationOps: MigrationOpsConfig; // required here — caller guards before passing
   bucketName?: string;
 }
+
+
+export interface Waney93CicdObservabilityStackProps extends cdk.StackProps {
+  stage: Stage;
+  config: ISharedServicesConfig;
+}
