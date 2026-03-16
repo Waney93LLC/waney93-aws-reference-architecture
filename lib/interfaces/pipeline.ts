@@ -45,3 +45,16 @@ export interface IPipelineAConfig {
   baseInfrastructure: IBaseInfrastructureConfig;
   sharedServices: ISharedServicesConfig;
 }
+
+export interface PipelineIdentityConfig {
+  bastionTagValue: string;
+  ecrRepoName: string;
+  exports: {
+    vpcId: string;
+    appClientSgId: string;
+    migrationStorageBucketArn: string;
+  };
+  migrationStorage: {
+    bucketName: string;
+  };
+}

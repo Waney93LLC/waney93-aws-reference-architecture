@@ -37,6 +37,18 @@ export interface ResourceParameterConfig {
   databaseCredentials: DatabaseCredentialParameterNames;
   migration: MigrationScriptConfig;
   ecs: EcsParamConfig;
+  pipelineIdentity: {
+    bastionTagValue: string;
+    ecrRepoName: string;
+    exports: {
+      vpcId: string;
+      appClientSgId: string;
+      migrationStorageBucketArn: string;
+    };
+    migrationStorage: {
+      bucketName: string;
+    };
+  };
 }
 
 /**

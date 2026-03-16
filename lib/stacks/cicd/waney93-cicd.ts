@@ -6,7 +6,6 @@ import { Waney93CICDStackProps } from './cicd-stack-props';
 import { PipelineConstruct } from '../../constructs/pipeline';
 import { FoundationsStage } from '../../stages/foundations';
 import { AppStage } from '../../stages/app';
-import { getWaney93PipelineAConfig } from '../../config/pipelines/waney93';
 
 /**
  * Waney93CICDStack
@@ -112,6 +111,7 @@ export class Waney93CICDStack extends cdk.Stack {
     const appStage = new AppStage(this, `${stage}-AppStage`, {
       env: env,
       stage,
+      config: config.app,
     });
     appWave.addStage(appStage);
   }

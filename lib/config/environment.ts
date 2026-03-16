@@ -5,6 +5,7 @@ import {
   ResolvedDatabaseCredentials,
   ResourceParameterConfig,
 } from '../interfaces/parameter-resolver';
+import { PipelineIdentityConfig } from '../interfaces/pipeline';
 
 export type Stage = 'dev' | 'test' | 'prod';
 
@@ -80,7 +81,9 @@ export function getEnvConfig(stage: Stage): EnvironmentConfig {
 
 export function getResourceParameterConfig(
   stage: Stage,
+  pipelineName: string,
 ): ResourceParameterConfig {
+   const base = `/waney93/${pipelineName}`;
   return {
     databaseCredentials: {
       loginSecretName: `/waney93/${stage}/aurora/secret-name`,
@@ -99,7 +102,19 @@ export function getResourceParameterConfig(
       apiCertArn: `/waney93/${stage}/ecs/api-cert-arn`,
       imageTag: `/waney93/${stage}/ecs/image-tag`,
       alertEmailAddress: `/waney93/${stage}/ecs/alert-email-address`,
-    }
+    },
+    pipelineIdentity: {
+      bastionTagValue: `${base}/identity/bastion-tag-value`,
+      ecrRepoName: `${base}/identity/ecr-repo-name`,
+      exports: {
+        vpcId: `${base}/exports/vpc-id`,
+        appClientSgId: `${base}/exports/app-client-sg-id`,
+        migrationStorageBucketArn: `${base}/exports/migration-storage-bucket-arn`,
+      },
+      migrationStorage: {
+        bucketName: `${base}/migration/bucket-name`,
+      },
+    },
   };
 }
 
@@ -166,6 +181,33 @@ export class ResourceConfigFacade {
       cognitoCertArn: this.resolver.getString(
         envConfig?.acmCertificateArnParameter ?? '',
       ),
+    };
+  }
+
+  public getPipelineIdentityConfig(): PipelineIdentityConfig {
+    return {
+      bastionTagValue: this.resolver.getString(
+        this.config.pipelineIdentity.bastionTagValue,
+      ),
+      ecrRepoName: this.resolver.getString(
+        this.config.pipelineIdentity.ecrRepoName,
+      ),
+      exports: {
+        vpcId: this.resolver.getString(
+          this.config.pipelineIdentity.exports.vpcId,
+        ),
+        appClientSgId: this.resolver.getString(
+          this.config.pipelineIdentity.exports.appClientSgId,
+        ),
+        migrationStorageBucketArn: this.resolver.getString(
+          this.config.pipelineIdentity.exports.migrationStorageBucketArn,
+        ),
+      },
+      migrationStorage: {
+        bucketName: this.resolver.getString(
+          this.config.pipelineIdentity.migrationStorage.bucketName,
+        ),
+      },
     };
   }
 }

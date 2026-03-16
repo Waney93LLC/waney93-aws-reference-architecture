@@ -12,7 +12,8 @@ import {
   EnvironmentConfig,
 } from '../environment';
 import { SsmParameterResolver } from '../ssm-parameter-resolver';
-import { IPipelineAConfig } from '../../interfaces/pipeline';
+import { IPipelineAConfig, PipelineIdentityConfig } from '../../interfaces/pipeline';
+import { IAppConfig } from '../../interfaces/app';
 
 // ─── Pipeline-level infrastructure constants ──────────────────────────────────
 //
@@ -37,6 +38,7 @@ const MIGRATION_STORAGE = {
 
 export interface Waney93PipelineAConfig extends IPipelineAConfig {
   readonly envConfig: EnvironmentConfig;
+  app: IAppConfig;
 }
 
 export function getWaney93PipelineAConfig(
@@ -44,11 +46,17 @@ export function getWaney93PipelineAConfig(
   stage: Stage,
 ): Waney93PipelineAConfig {
   const env = getEnvConfig(stage);
+  const resourceConfig = new ResourceConfigFacade(
+    new SsmParameterResolver(scope),
+    getResourceParameterConfig(stage, env.pipeline.name),
+  );
+  const identity = resourceConfig.getPipelineIdentityConfig();
 
   return {
     envConfig: env,
     baseInfrastructure: buildBaseInfrastructureConfig(scope, env),
     sharedServices: buildSharedServicesConfig(scope, stage, env),
+    app: buildAppConfig(resourceConfig, env, identity),
   };
 }
 
@@ -171,8 +179,6 @@ function buildEcrConfig(): ISharedServicesConfig['ecr'] {
 function buildOidcConfig(
   env: EnvironmentConfig,
 ): ISharedServicesConfig['oidc'] {
-  // Repository is now derived from EnvironmentConfig — the application repo
-  // that gets deployed is the same one the pipeline tracks.
   return {
     applicationRepository: {
       owner: env.pipeline.repository.owner,
@@ -209,7 +215,7 @@ function buildMigrationOpsConfig(
 ): ISharedServicesConfig['migrationOps'] {
   const resourceConfig = new ResourceConfigFacade(
     new SsmParameterResolver(scope),
-    getResourceParameterConfig(stage),
+    getResourceParameterConfig(stage,env.pipeline.name),
   );
   const scriptConfig = resourceConfig.getMigrationScriptConfig();
 
@@ -240,3 +246,31 @@ function buildMigrationStorageConfig(): ISharedServicesConfig['migrationStorage'
     },
   };
 }
+
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+
+function buildAppConfig(
+  resourceConfig: ResourceConfigFacade,
+  env: EnvironmentConfig,
+  identity: PipelineIdentityConfig,
+): IAppConfig {
+  const ecsParams = resourceConfig.getEcsConfig();
+  const cognitoCertArn = resourceConfig.getCognitoConfig(
+    env.cognito,
+  ).cognitoCertArn;
+
+  return {
+    ecsConfig: {
+      apiCertArn: ecsParams.apiCertArn,
+      imageTag: ecsParams.imageTag,
+      alertEmailAddress: ecsParams.alertEmailAddress,
+    },
+    cognitoConfig: {
+      certArn: cognitoCertArn,
+      appClientName: 'DjangoWebClient',
+    },
+    ecrRepoName: identity.ecrRepoName,  // from SSM — no static method needed
+  };
+}
+

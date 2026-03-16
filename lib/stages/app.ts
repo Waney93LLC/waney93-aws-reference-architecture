@@ -1,6 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import { AppStageProps } from '../interfaces/app-layer';
+import { AppStageProps } from '../interfaces/app';
 import { AppStack } from '../stacks/app';
 
 /**
@@ -11,8 +11,7 @@ import { AppStack } from '../stacks/app';
  *   appropriate configuration.
  */
 export class AppStage extends cdk.Stage {
-
-    /**
+  /**
    * AppStage constructor instantiates the AppStack.
    * @param scope - The construct scope
    * @param id - The stage ID
@@ -21,12 +20,10 @@ export class AppStage extends cdk.Stage {
   constructor(scope: Construct, id: string, props: AppStageProps) {
     super(scope, id, props);
 
-    new AppStack(this, 'AppStack', {
-      description: 'App stack for application resources (e.g., Lambda, API Gateway, ECS)',
-      tags: {
-        'ManagedByPipeline': 'App-CdkPipeline',
-      },
-      ...props,
+    new AppStack(this, 'PipelineA-App', {
+      stage: props.stage,
+      config: props.config,
+      env: props.env,
     });
   }
 }
