@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
-import { COGNITO_CONFIG } from './shared-services-old';
+import { CognitoConfig } from './shared-services';
+
 
 /**
  * Encapsulates all Cognito-related configuration options for the SharedServices feature.
@@ -42,5 +43,5 @@ export interface CognitoSecretsConstructProps {
 
 export interface CognitoConstructProps {
   idPrefix?: string;
-  cognito?: COGNITO_CONFIG;
+  cognito?: CognitoConfig;
 }

@@ -4,7 +4,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as events from 'aws-cdk-lib/aws-events';
 import { ResourceConfigFacade } from '../config/environment';
-import { OpsRunbookConstructProps } from '../interfaces/shared-services-old';
+import { OpsRunbookConstructProps } from '../interfaces/shared-services';
 import { EventRouter } from '../constructs/event-router';
 import { SsmAutomationTarget } from '../constructs/ssm-automation-target';
 import { getS3MigrationScriptSteps } from '../config/migrations/templates';

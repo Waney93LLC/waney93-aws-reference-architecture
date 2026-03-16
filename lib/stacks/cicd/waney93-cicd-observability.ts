@@ -5,7 +5,7 @@ import * as sns from 'aws-cdk-lib/aws-sns';
 import * as subs from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { Waney93CicdObservabilityStackProps } from '../../interfaces/shared-services-old';
+import { Waney93CicdObservabilityStackProps } from '../../interfaces/shared-services';
 import { getEnvConfig } from '../../config/environment';
 
 /**

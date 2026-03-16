@@ -14,7 +14,6 @@ import { Network } from '../constructs/network';
  *   Keep this thin; orchestration belongs in builders.
  */
 export class BaseInfrastructureStack extends cdk.Stack {
-  public readonly network: Network | undefined;
   /**
    * BaseInfrastructureStack constructor that instantiates BaseInfrastructureBuilder
    * @param scope - The construct scope
@@ -38,8 +37,6 @@ export class BaseInfrastructureStack extends cdk.Stack {
       .withAppClientSecurityGroup()
       .withAuroraDB(props.config.rds)
       .outputs();
-
-    this.network = builder.network;
 
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
