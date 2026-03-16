@@ -3,8 +3,7 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { BaseInfrastructureBuilderProps } from '../interfaces/base-infrastructure';
 import { Network } from '../constructs/network';
-import { RdsBastion } from '../constructs/bastion';
-import { RdsBastionConfigBuilder } from './rds-bastion';
+import { RdsBastion } from '../constructs/rds-bastion/rds-bastion';
 import {
   getResourceParameterConfig,
   ResourceConfigFacade,
@@ -16,6 +15,8 @@ import {
   IParameterResolver,
   ResolvedDatabaseCredentials,
 } from '../interfaces/parameter-resolver';
+
+import { BastionIamRole } from '../constructs/rds-bastion/bastion-iam-role';
 import { RdsBastionConfig } from '../interfaces/bastion';
 
 /**
@@ -73,22 +74,25 @@ export class BaseInfrastructureBuilder {
    * withRdsBastion adds a bastion host for RDS access to the builder.
    */
   public withRdsBastion(config: RdsBastionConfig): this {
-    if (!this.network)
-      throw new Error('Call withNetwork() before withRdsBastion().');
-
-    const bastionConfig = new RdsBastionConfigBuilder(
+    if (!this.network) {
+      throw new Error('withNetwork() must be called before withRdsBastion().');
+    }
+    const roleProvider = new BastionIamRole(
       this.scope,
-      config,
-      this.props.stage,
-      this.network.vpc,
-    ).build();
+      `${this.idPrefix}-BastionRole`,
+    );
+
     this.bastion = new RdsBastion(this.scope, `${this.idPrefix}-RdsBastion`, {
-      vpc: this.network.vpc,
-      ...bastionConfig,
+      network: { vpc: this.network.vpc },
+      securityGroup: config.securityGroup,
+      instance: config.instance,
+      roleProvider,
+      runCommandDocumentName: config.runCommandDocumentName,
+      migrationStorage: config.migrationStorage,
     });
+
     return this;
   }
-
   /**
    * Adds a security group for application clients that need access to the network.
    */
@@ -115,7 +119,7 @@ export class BaseInfrastructureBuilder {
     if (!this.props.rds)
       throw new Error('withRds is called with rds property not configured.');
     if (!this.network) throw new Error('Call withNetwork() before withRds().');
-    if (!this.bastion) throw new Error('Call withBastion() before withRds().');
+    if (!this.bastion) throw new Error('Call withRdsBastion() before withRds().');
     if (!this.appClientSg)
       throw new Error('Call withAppClientSecurityGroup() before withRds().');
     const bastionSecGrpConfig: SecurityGroupConfig = {

@@ -17,7 +17,6 @@ import { RdsConfig } from './rds';
 export interface BaseInfrastructureProps {
   stage: Stage;
   network: NETWORK_CONFIG;
-  rdsBastion?: RdsBastionConfig;
   rds?: RdsConfig;
 }
 

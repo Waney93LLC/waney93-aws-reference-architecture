@@ -1,58 +1,65 @@
-
-import { IBucket } from 'aws-cdk-lib/aws-s3';
-import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { MIGRATION_OPS_CONFIG } from './shared-services';
-import { IParameterResolver } from './parameter-resolver';
-import { Stage } from '../config/environment';
-import { PortRule, SecurityGroupConfig } from './common';
 
+// (I) — Interfaces are split by concern.
+// No consumer is forced to depend on props it doesn't use.
 
+export interface IBastionNetworkConfig {
+  vpc: ec2.IVpc;
+  subnetSelection?: ec2.SubnetSelection;
+}
 
+export interface IBastionSecurityGroupConfig {
+  definition: ec2.SecurityGroup;
+  portRules: IBastionPortRule[];
+}
 
-export interface BastionInstanceConfig {
+export interface IBastionPortRule {
+  port: ec2.Port;
+  description: string;
+}
+
+export interface IBastionInstanceConfig {
   type: ec2.InstanceType;
   ami: ec2.IMachineImage;
   userData?: ec2.UserData;
+  detailedMonitoring?: boolean;
   tagKey?: string;
   tagValue?: string;
 }
 
-export interface MigrationAppUserCredentials {
-  name: string;
-  secretName: string;
+export interface IBastionRoleProvider {
+  readonly role: iam.IRole;
+  grantS3Access?(bucketArn: string): void;
 }
 
-export interface MigrationDatabaseCredentials {
-  loginSecretName: string;
-  appUser: MigrationAppUserCredentials;
+export interface IBastionStorageConfig {
+  migrationStorageBucketExportName: string;
 }
 
-export interface MigrationOperations {
-  config: MIGRATION_OPS_CONFIG;
-  databaseCredentials: MigrationDatabaseCredentials;
-}
-
-export interface BastionBaseConfig {
-  subnetSelection?: ec2.SubnetSelection;
-  bastionConfig: BastionInstanceConfig;
-  bastionSecGrpConfig: SecurityGroupConfig;
-}
-
-export interface BastionConfig extends BastionBaseConfig {
-  vpc: ec2.IVpc;
+export interface RdsBastionProps {
+  network: IBastionNetworkConfig;
+  securityGroup: IBastionSecurityGroupConfig;
+  instance: IBastionInstanceConfig;
+  roleProvider: IBastionRoleProvider; 
   runCommandDocumentName: string;
-  migrationStorageBucketArn?: string;
+  migrationStorage?: IBastionStorageConfig;
+}
+
+export interface BastionInstanceProps {
+  network: IBastionNetworkConfig;
+  instanceConfig: IBastionInstanceConfig;
+  role: iam.IRole;
+  securityGroup: ec2.SecurityGroup;
 }
 
 export interface RdsBastionConfig {
-  userDataCommands?: string[];
-  subnetSelection?: ec2.SubnetSelection;
-  instance: {
-    type: ec2.InstanceType;
-    ami: ec2.IMachineImage;
-  };
-  securityGroupPorts: PortRule[];
-  config: MIGRATION_OPS_CONFIG;
+  securityGroup: IBastionSecurityGroupConfig;
+  instance: IBastionInstanceConfig;
+  runCommandDocumentName: string;
+  migrationStorage?: IBastionStorageConfig;
+}
+
+export interface BastionConfig {
+
 }
