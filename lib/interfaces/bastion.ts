@@ -16,6 +16,8 @@ export interface BastionInstanceConfig {
   role: iam.Role;
   ami: ec2.IMachineImage;
   userData?: ec2.UserData;
+  tagKey?: string;
+  tagValue?: string;
 }
 
 export interface MigrationAppUserCredentials {
@@ -41,6 +43,8 @@ export interface BastionBaseConfig {
 
 export interface BastionConfig extends BastionBaseConfig {
   vpc: ec2.IVpc;
+  runCommandDocumentName: string;
+  migrationStorageBucketArn?: string;
 }
 
 export interface RdsBastionConfig {

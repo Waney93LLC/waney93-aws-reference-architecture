@@ -3,7 +3,6 @@ import { Construct } from 'constructs';
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as ssm from 'aws-cdk-lib/aws-ssm';
 import {BastionConfig } from '../interfaces/bastion';
 import { ResourceConfigFacade } from '../config/environment';
 
@@ -48,17 +47,15 @@ export class RdsBastion extends Construct {
           'ssm:ListCommandInvocations',
         ],
         resources: [
-          `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:document/${config.runCommandDocumentName}`,
+          `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:document/${props.runCommandDocumentName}`,
         ],
       }),
     );
-    const storageConfig = ResourceConfigFacade.ExportedValueName.storage ?? {
-      migrationStorageBucketArn: '',
-    };
 
-    if (storageConfig.migrationStorageBucketArn) {
+
+    if (props.migrationStorageBucketArn) {
       const bucketArn = cdk.Fn.importValue(
-        storageConfig.migrationStorageBucketArn,
+        props.migrationStorageBucketArn,
       );
       const bucket = cdk.aws_s3.Bucket.fromBucketArn(
         this,
@@ -79,11 +76,10 @@ export class RdsBastion extends Construct {
       detailedMonitoring: true,
       userData: bastionConfig.userData,
     });
-    const { target } = migrationOps.config;
-    cdk.Tags.of(this.instance).add(
-      target.instance.tagKey,
-      target.instance.tagValue,
-    );
+    const { tagKey, tagValue } = bastionConfig;
+    if (tagKey && tagValue) {
+      cdk.Tags.of(this.instance).add(tagKey, tagValue);
+    }
   }
 
 }
