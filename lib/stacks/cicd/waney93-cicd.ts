@@ -110,7 +110,6 @@ export class Waney93CICDStack extends cdk.Stack {
     const appStage = new AppStage(this, `${stage}-AppStage`, {
       env: env,
       stage,
-    vpc: sharedStage.vpc,
     });
     appWave.addStage(appStage);
   }

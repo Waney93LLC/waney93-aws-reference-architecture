@@ -32,14 +32,12 @@ export interface DjangoEcsBuilders {
 export function createDjangoEcsBuilders(
   scope: Construct,
   ecsConfig: ECS_PARAM_CONFIG,
-  vpc: ec2.IVpc
 ): DjangoEcsBuilders {
   const serviceName = 'DjangoApp';
 
   const clusterBuilder: ECS_CLUSTER_BUILDER = {
     id: 'AppCluster',
     name: serviceName,
-    vpc,
   };
 
   const logGroupBuilder: ECS_LOG_GROUP_BUILDER = {

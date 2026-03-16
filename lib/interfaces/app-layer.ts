@@ -37,7 +37,6 @@ export interface AppBuilderProps extends AppProps {}
  */
 export interface AppStackProps extends cdk.StackProps, AppProps {
     stage:Stage;
-    vpc: cdk.aws_ec2.IVpc;
 }
 
 /**
@@ -48,5 +47,4 @@ export interface AppStackProps extends cdk.StackProps, AppProps {
  */
 export interface AppStageProps extends cdk.StageProps, AppProps {
   stage: Stage;
-  vpc: cdk.aws_ec2.IVpc;
 }

@@ -44,7 +44,7 @@ export class AppStack extends cdk.Stack {
       auroraSecretName,
       oidcSecretName,
     );
-    const builders = createDjangoEcsBuilders(this, ecsConfig,props.vpc);
+    const builders = createDjangoEcsBuilders(this, ecsConfig);
 
     new EcsBuilder(this, 'App', props)
       .withCluster(builders.clusterBuilder)
