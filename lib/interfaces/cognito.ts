@@ -1,5 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
-import { COGNITO_CONFIG } from './shared-services';
+import { COGNITO_CONFIG } from './shared-services-old';
 
 /**
  * Encapsulates all Cognito-related configuration options for the SharedServices feature.
@@ -12,8 +12,8 @@ export interface DjangoCognitoStackProps extends cdk.StackProps {
   logoutUrls: string[];
   customDomainName: string;
   removalPolicy?: cdk.RemovalPolicy;
-  secretName?: string; 
-  acmCertificateArn?: string; 
+  secretName?: string;
+  acmCertificateArn?: string;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface CognitoSecretsConstructProps {
   userPoolId: string;
   userPoolClientId: string;
   userPoolClientName?: string;
-  customDomainName: string; 
+  customDomainName: string;
   region: string;
 }
 

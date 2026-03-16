@@ -1,5 +1,7 @@
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import { IBaseInfrastructureConfig } from './base-infrastructure';
+import { ISharedServicesConfig } from './shared-services';
 
 /**
  * PipelineConstructProps defines the properties required to configure the reusable PipelineConstruct.
@@ -24,4 +26,9 @@ export interface PipelineConstructProps {
    * Optional: additional policy statements for the Synth step role
    */
   readonly synthRolePolicyStatements?: PolicyStatement[];
+}
+
+export interface PipelineAConfig {
+  baseInfrastructure: IBaseInfrastructureConfig;
+  sharedServices: ISharedServicesConfig;
 }

@@ -3,19 +3,9 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import {
-  COGNITO_CONFIG,
-  ECR_CONFIG,
-  MIGRATION_OPS_CONFIG,
-  OIDC_CONFIG,
   SharedServicesStackProps,
 } from '../interfaces/shared-services';
 import { SharedServicesBuilder } from '../builders/shared-services';
-import {
-  getResourceParameterConfig,
-  ResourceConfigFacade,
-  Stage,
-} from '../config/environment';
-import { SsmParameterResolver } from '../config/ssm-parameter-resolver';
 
 /**
  * SharedServicesStack
@@ -25,51 +15,12 @@ import { SsmParameterResolver } from '../config/ssm-parameter-resolver';
  *   Keep this thin; orchestration belongs in builders.
  */
 export class SharedServicesStack extends cdk.Stack {
-  /**
-   * SharedServicesStack constructor that instantiates SharedServicesBuilder
-   * @param scope - The construct scope
-   * @param id - The stack ID
-   * @param props - The stack properties
-   */
   constructor(scope: Construct, id: string, props: SharedServicesStackProps) {
     super(scope, id, props);
-    const ecrConfig: ECR_CONFIG = SharedServicesStack.getEcrConfig();
-    const oidcConfig: OIDC_CONFIG = SharedServicesStack.getOidcConfig();
-    let migrationOpsConfig: MIGRATION_OPS_CONFIG | undefined;
-    if (props.pipelineName) {
-      migrationOpsConfig = SharedServicesStack.getMigrationOpsConfig(
-        this,
-        props.stage,
-      );
-    }
-    const resourceConfig = new ResourceConfigFacade(
-      new SsmParameterResolver(this),
-      getResourceParameterConfig(props.stage),
-    );
-    let cognitoConfig: COGNITO_CONFIG | undefined;
-    if (props.acmCertificateArnName) {
-      const acmCertificateArnParameter = props.acmCertificateArnName;
-      cognitoConfig = SharedServicesStack.getCognitoConfig(
-        resourceConfig.getCognitoConfig({
-          acmCertificateArnParameter,
-        }).cognitoCertArn,
-      );
-    }
 
     new SharedServicesBuilder(this, 'SharedServicesBuilder', {
-      ...props,
-      ecr: ecrConfig,
-      oidc: oidcConfig,
-      migrationOps: migrationOpsConfig,
-      cognito: cognitoConfig,
-      migrationStorage: {
-        s3Bucket: {
-          name: `${this.stackName.toLocaleLowerCase()}-migration-storage`,
-          removalPolicy: cdk.RemovalPolicy.DESTROY,
-          autoDeleteObjects: true,
-          bucketId: 'MigrationStorageBucket',
-        },
-      },
+      stage: props.stage,
+      ...props.config,
     })
       .withEcr()
       .withCiEcrPushRole()
@@ -78,90 +29,7 @@ export class SharedServicesStack extends cdk.Stack {
       .withMigrationStorage()
       .withCognito()
       .outputs();
-    // Optional tagging convention
+
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
-  }
-
-  static getEcrConfig(): ECR_CONFIG {
-    return {
-      REPO_NAME: 'waney93-ecr-repo',
-      ImageScanOnPush: true,
-      ImageTagMutability: cdk.aws_ecr.TagMutability.IMMUTABLE,
-      Encryption: cdk.aws_ecr.RepositoryEncryption.KMS,
-      LifecycleMaxImageAgeDays: 2,
-      RemovalPolicy: cdk.RemovalPolicy.DESTROY,
-    };
-  }
-
-  static getOidcConfig(): OIDC_CONFIG {
-    return {
-      applicationRepository: {
-        owner: 'Waney93LLC',
-        name: 'djangoproject',
-        branch: 'main',
-      },
-      provider: {
-        name: 'GitHub',
-        url: 'https://token.actions.githubusercontent.com',
-        clientIds: ['sts.amazonaws.com'],
-        thumbprints: [
-          '6938fd4d98bab03faadb97b34396831e3780aea1',
-          '1c58a3a8518e8759bf075b76b750d4f2df264fcd',
-        ],
-      },
-      ciRole: {
-        name: 'DjangoProjectGitHubActionsRole',
-        description:
-          'Role for GitHub Actions from djangoproject to assume via OIDC',
-        stringEqualityConditions: {
-          'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com',
-        },
-        stringLikeConditions: {
-          'token.actions.githubusercontent.com:sub':
-            'repo:Waney93LLC/djangoproject:*',
-        },
-      },
-    };
-  }
-
-  static getMigrationOpsConfig(
-    scope: Construct,
-    stage: Stage,
-  ): MIGRATION_OPS_CONFIG {
-    const resourceConfig = new ResourceConfigFacade(
-      new SsmParameterResolver(scope),
-      getResourceParameterConfig(stage),
-    );
-    return {
-      automationRunbookName: 'RunMigrationBootstrap',
-      runCommandDocumentName: 'BastionMigrationDocument',
-      target: {
-        instance: {
-          tagKey: 'Name',
-          tagValue: 'waney93-bastion',
-        },
-      },
-      script: {
-        folderPath: resourceConfig.getMigrationScriptConfig().folderPath,
-        entryFile: resourceConfig.getMigrationScriptConfig().entryFile,
-        description: resourceConfig.getMigrationScriptConfig().description,
-      },
-    };
-  }
-
-  static getCognitoConfig(acmCertificateArn: string): COGNITO_CONFIG {
-    return {
-      app: {
-        name: 'DjangoWebClient',
-        callbackUrls: ['https://example.com/callback'],
-        logoutUrls: ['https://example.com/logout'],
-        secret: { name: 'SharedServicesCognitoAppSecret' },
-      },
-      customDomainName: 'auth.waney93.com',
-      acmCertificateArn,
-      userPoolSelfSignUpEnabled: true,
-      allowUsernameSignIn: true,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    };
   }
 }

@@ -1,7 +1,7 @@
-import { Construct } from "constructs";
+import { Construct } from 'constructs';
 import * as cdk from 'aws-cdk-lib';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
-import {S3StorageConstructProps} from '../interfaces/shared-services';
+import { S3StorageConstructProps } from '../interfaces/shared-services-old';
 
 /**
  * S3StorageConstruct

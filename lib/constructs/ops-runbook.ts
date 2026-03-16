@@ -4,7 +4,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as events from 'aws-cdk-lib/aws-events';
 import { ResourceConfigFacade } from '../config/environment';
-import { OpsRunbookConstructProps } from '../interfaces/shared-services';
+import { OpsRunbookConstructProps } from '../interfaces/shared-services-old';
 import { EventRouter } from '../constructs/event-router';
 import { SsmAutomationTarget } from '../constructs/ssm-automation-target';
 import { getS3MigrationScriptSteps } from '../config/migrations/templates';
@@ -30,16 +30,16 @@ export class OpsRunbookConstruct extends Construct {
     }
     const { target, runCommandDocumentName, automationRunbookName, script } =
       props.migrationOps;
-      if(!script){
-        throw new Error(
-          'Script configuration is required for OpsRunbookConstruct migration operations',
-        );
-      }
-      if(!props.bucketName){
-        throw new Error(
-          'Bucket name is required for OpsRunbookConstruct migration operations',
-        );
-      }
+    if (!script) {
+      throw new Error(
+        'Script configuration is required for OpsRunbookConstruct migration operations',
+      );
+    }
+    if (!props.bucketName) {
+      throw new Error(
+        'Bucket name is required for OpsRunbookConstruct migration operations',
+      );
+    }
 
     this.runbookName =
       automationRunbookName ?? 'RunBootstrapOnFoundationCreate';
@@ -68,7 +68,8 @@ export class OpsRunbookConstruct extends Construct {
       documentType: 'Automation',
       name: this.runbookName,
       content: {
-        schemaVersion: ResourceConfigFacade.VersionLock.AUTOMATION_SCHEMA_VERSION,
+        schemaVersion:
+          ResourceConfigFacade.VersionLock.AUTOMATION_SCHEMA_VERSION,
         description:
           'Triggered by EventBridge when stack completes; runs an existing Run Command document on target instance(s).',
         parameters: {
@@ -141,7 +142,6 @@ export class OpsRunbookConstruct extends Construct {
 
     const automationDefinitionArn = `arn:aws:ssm:${region}:${account}:automation-definition/${this.runbookName}`;
 
-
     const migrationSteps = getS3MigrationScriptSteps(
       `s3://${props.bucketName}/${script.folderPath}`,
       script.entryFile,
@@ -151,7 +151,8 @@ export class OpsRunbookConstruct extends Construct {
       name: runCommandDocumentName,
       documentType: 'Command',
       content: {
-        schemaVersion: ResourceConfigFacade.VersionLock.SSM_COMMAND_SCHEMA_VERSION,
+        schemaVersion:
+          ResourceConfigFacade.VersionLock.SSM_COMMAND_SCHEMA_VERSION,
         description:
           script?.description ||
           'SSM Document to run migration scripts on the bastion host',

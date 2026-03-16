@@ -5,7 +5,7 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import {
   EventRouterProps,
   SharedServicesBuilderProps,
-} from '../interfaces/shared-services';
+} from '../interfaces/shared-services-old';
 import { EcrConstruct } from '../constructs/ecr';
 import { OidcCiRoleConstruct } from '../constructs/odic-ci-role';
 import { EventRouter } from '../constructs/event-router';
@@ -179,19 +179,19 @@ export class SharedServicesBuilder {
         'Migration Ops configuration is required to create Ops Runbook',
       );
     }
-    if (!this.props.migrationStorage){
+    if (!this.props.migrationStorage) {
       throw new Error(
         'Migration Storage configuration is required to create Ops Runbook with migration storage integration',
       );
     }
-      this.migrationOpsRunbook = new OpsRunbookConstruct(
-        this.scope,
-        'MigrationBootstrapRunbook',
-        {
-          migrationOps: this.props.migrationOps,
-          bucketName: this.props.migrationStorage.s3Bucket?.name,
-        },
-      );
+    this.migrationOpsRunbook = new OpsRunbookConstruct(
+      this.scope,
+      'MigrationBootstrapRunbook',
+      {
+        migrationOps: this.props.migrationOps,
+        bucketName: this.props.migrationStorage.s3Bucket?.name,
+      },
+    );
     return this;
   }
 
@@ -253,18 +253,23 @@ export class SharedServicesBuilder {
           `${this.idPrefix}-CognitoUserPoolId`,
       });
     }
-    if(this.domainCert) {
+    if (this.domainCert) {
       new cdk.CfnOutput(this.scope, 'cognitoDomainCertArn', {
         value: this.domainCert.certificateArn,
         description: 'Cognito Custom Domain Certificate ARN',
-        exportName: ResourceConfigFacade.ExportedValueName.cognito?.certificateArn || `${this.idPrefix}-CognitoDomainCertArn`,
+        exportName:
+          ResourceConfigFacade.ExportedValueName.cognito?.certificateArn ||
+          `${this.idPrefix}-CognitoDomainCertArn`,
       });
     }
     if (this.s3Construct) {
       new cdk.CfnOutput(this.scope, 'migrationStorageBucketArn', {
         value: this.s3Construct.bucket.bucketArn,
         description: 'Migration Storage Bucket ARN',
-        exportName: ResourceConfigFacade.ExportedValueName.storage?.migrationStorageBucketArn || `${this.idPrefix}-MigrationStorageBucketArn`,
+        exportName:
+          ResourceConfigFacade.ExportedValueName.storage
+            ?.migrationStorageBucketArn ||
+          `${this.idPrefix}-MigrationStorageBucketArn`,
       });
     }
     return this;

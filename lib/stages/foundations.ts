@@ -2,7 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
-import { FoundationStageProps } from '../interfaces/shared-services';
+import { FoundationStageProps } from '../interfaces/shared-services-old';
 import { SharedServicesStack } from '../stacks/shared-services';
 import { BaseInfrastructureStack } from '../stacks/base-infrastructure';
 import { getWaney93PipelineAConfig } from '../config/pipelines/waney93';
@@ -23,17 +23,14 @@ export class FoundationsStage extends cdk.Stage {
    */
   constructor(scope: Construct, id: string, props: FoundationStageProps) {
     super(scope, id, props);
-
+    const pipelineConfig = getWaney93PipelineAConfig(this, props.stage);
     const sharedServicesStack = new SharedServicesStack(
       this,
       'SharedServicesStack',
       {
-        description:
-          'Shared services stack for foundational resources (e.g., Cognito, ECR)',
-        tags: {
-          ManagedByPipeline: 'App-CdkPipeline',
-        },
-        ...props,
+        stage: props.stage,
+        config: pipelineConfig.sharedServices,
+        env: props.env,
       },
     );
 
@@ -42,7 +39,7 @@ export class FoundationsStage extends cdk.Stage {
       'InfrastructureStack',
       {
         stage: props.stage,
-        config: getWaney93PipelineAConfig(this, props.stage),
+        config: pipelineConfig.baseInfrastructure,
         env: props.env,
       },
     );

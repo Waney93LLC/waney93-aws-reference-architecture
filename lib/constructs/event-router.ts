@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import * as events from 'aws-cdk-lib/aws-events';
-import { EventRouterProps } from '../interfaces/shared-services';
+import { EventRouterProps } from '../interfaces/shared-services-old';
 
 /**
  * EventRouter
