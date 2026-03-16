@@ -98,8 +98,6 @@ export class Waney93CICDStack extends cdk.Stack {
     const foundationsWave = pipelineConstruct.pipeline.addWave(`${stage}-Foundations`);
     const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
       env: env,
-      pipelineName: pipeline.name,
-      acmCertificateArnName: config.cognito?.acmCertificateArnParameter,
       stage
     });
     if (process.env.SKIP_FOUNDATIONS !== 'true') {
