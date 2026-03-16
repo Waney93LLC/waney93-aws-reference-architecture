@@ -1,19 +1,13 @@
 import * as cdk from 'aws-cdk-lib';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as events from 'aws-cdk-lib/aws-events';
 import { Stage } from '../config/environment';
-
-export interface ISharedServicesConfig {
-  ecr: EcrConfig;
-  oidc: OidcConfig;
-  migrationOps?: MigrationOpsConfig; // optional — not all pipelines need it
-  cognito?: CognitoConfig; // optional — not all pipelines need it
-  migrationStorage: MigrationStorageConfig;
-}
 
 export interface EcrConfig {
   repoName: string;
   imageScanOnPush: boolean;
-  imageTagMutability: cdk.aws_ecr.TagMutability;
-  encryption: cdk.aws_ecr.RepositoryEncryption;
+  imageTagMutability: ecr.TagMutability;
+  encryption: ecr.RepositoryEncryption;
   lifecycleMaxImageAgeDays: number;
   removalPolicy: cdk.RemovalPolicy;
 }
@@ -68,16 +62,70 @@ export interface CognitoConfig {
   removalPolicy: cdk.RemovalPolicy;
 }
 
-export interface MigrationStorageConfig {
-  s3Bucket: {
-    name: string;
-    removalPolicy: cdk.RemovalPolicy;
-    autoDeleteObjects: boolean;
-    bucketId: string;
-  };
+export interface S3StorageConstructProps {
+  name: string;
+  removalPolicy: cdk.RemovalPolicy;
+  autoDeleteObjects: boolean;
+  bucketId: string;
+  enforceSSL?: boolean;
+  versioned?: boolean;
+  encryption?: cdk.aws_s3.BucketEncryption;
 }
 
+export interface DynamoDBTableConstructProps {
+  name: string;
+  removalPolicy: cdk.RemovalPolicy;
+  tableId: string;
+}
+
+export interface MigrationStorageConfig {
+  s3Bucket?: S3StorageConstructProps;
+  dynamoDBTable?: DynamoDBTableConstructProps;
+}
+
+// Export names are injected — no static fallbacks, no magic strings.
+export interface SharedServicesExportNames {
+  cognitoUserPoolId?: string;
+  cognitoDomainCertArn?: string;
+  migrationStorageBucketArn?: string;
+}
+
+// The single config contract the stack and builder depend on.
+export interface ISharedServicesConfig {
+  ecr: EcrConfig;
+  oidc: OidcConfig;
+  migrationOps?: MigrationOpsConfig; // optional — no-op if absent
+  cognito?: CognitoConfig; // optional — no-op if absent
+  migrationStorage: MigrationStorageConfig;
+  exportNames?: SharedServicesExportNames;
+}
+
+// Builder props — no empty extension, stage lives here alongside config.
+export interface SharedServicesBuilderProps {
+  stage: Stage;
+  config: ISharedServicesConfig;
+}
+
+// Stack props — slim, no feature flags.
 export interface SharedServicesStackProps extends cdk.StackProps {
   stage: Stage;
-  config: ISharedServicesConfig; 
+  config: ISharedServicesConfig;
+}
+
+export interface EventRoute {
+  readonly name: string;
+  readonly eventBus?: events.IEventBus;
+  readonly eventPattern: events.EventPattern;
+  readonly targets: events.IRuleTarget[];
+  readonly input?: events.RuleTargetInput;
+  readonly enabled?: boolean;
+}
+
+export interface EventRouterProps {
+  readonly routes: EventRoute[];
+}
+
+export interface OpsRunbookConstructProps {
+  migrationOps: MigrationOpsConfig; // required here — caller guards before passing
+  bucketName?: string;
 }

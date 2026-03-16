@@ -1,36 +1,36 @@
-import { Construct } from 'constructs';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
+import { Construct } from 'constructs';
 import {
-  EventRouterProps,
   SharedServicesBuilderProps,
-} from '../interfaces/shared-services-old';
+  ISharedServicesConfig,
+} from '../interfaces/shared-services';
 import { EcrConstruct } from '../constructs/ecr';
 import { OidcCiRoleConstruct } from '../constructs/odic-ci-role';
-import { EventRouter } from '../constructs/event-router';
-import { OpsRunbookConstruct } from '../constructs/ops-runbook';
 import { CognitoConstruct } from '../constructs/cognito/cognito-construct';
 import { CognitoUserPoolConstruct } from '../constructs/cognito/cognito-userpool-constructs';
 import { CognitoSecretsConstruct } from '../constructs/cognito/cognito-secrets-constructs';
+import { OpsRunbookConstruct } from '../constructs/ops-runbook';
 import { S3StorageConstruct } from '../constructs/s3storage';
-import { ResourceConfigFacade } from '../config/environment';
+import { EventRouter } from '../constructs/event-router';
+import {EventRouterProps} from '../interfaces/EventRouter';
 
 /**
  * SharedServicesBuilder
  *
- * Purpose:
- *   Composition layer that orchestrates one or more constructs into a cohesive
- *   feature (e.g., Cognito, VPC, ECS, CI/CD).
+ * Orchestrates shared service constructs into a cohesive feature.
+ * This builder contains no configuration decisions — all decisions
+ * are injected via ISharedServicesConfig.
  *
- * Notes:
- *   - Apply defaults + normalize props here.
- *   - Keep public methods fluent (return this) to support chaining.
+ * Optional features (migrationOps, cognito) are no-ops when their
+ * config is absent. They never throw for missing optional config.
  */
 export class SharedServicesBuilder {
   private readonly scope: Construct;
   private readonly idPrefix: string;
-  private readonly props: Required<SharedServicesBuilderProps>;
+  private readonly config: ISharedServicesConfig;
+
   private repo?: EcrConstruct;
   private ciGithubEcrRoles?: iam.PolicyStatement[];
   private userPool?: CognitoUserPoolConstruct;
@@ -39,13 +39,6 @@ export class SharedServicesBuilder {
   private migrationOpsRunbook?: OpsRunbookConstruct;
   private s3Construct?: S3StorageConstruct;
 
-  /**
-   * SharedServicesBuilder constructor creates a builder that orchestrates
-   * one or more constructs into a cohesive feature.
-   * @param scope - The construct scope
-   * @param idPrefix - The ID prefix for the resources
-   * @param props - The builder properties
-   */
   constructor(
     scope: Construct,
     idPrefix: string,
@@ -53,41 +46,34 @@ export class SharedServicesBuilder {
   ) {
     this.scope = scope;
     this.idPrefix = idPrefix;
-
-    this.props = {
-      ...props,
-    } as Required<SharedServicesBuilderProps>;
+    this.config = props.config;
   }
 
   /**
-   * Configure the ECR repository.
-   * @returns this
+   * Creates the ECR repository.
+   * Throws if ecr config is absent — ECR is not optional for this builder.
    */
   public withEcr(): this {
-    if (!this.props.ecr) {
-      throw new Error('ECR configuration is required to create ECR repository');
-    }
     this.repo = new EcrConstruct(this.scope, 'EcrBuilder', {
-      repositoryName: this.props.ecr.REPO_NAME,
-      imageScanOnPush: this.props.ecr.ImageScanOnPush,
-      imageTagMutability: this.props.ecr.ImageTagMutability,
-      encryption: this.props.ecr.Encryption,
-      lifecycleMaxImageAgeDays: this.props.ecr.LifecycleMaxImageAgeDays,
-      removalPolicy: this.props.ecr.RemovalPolicy,
+      repositoryName: this.config.ecr.repoName,
+      imageScanOnPush: this.config.ecr.imageScanOnPush,
+      imageTagMutability: this.config.ecr.imageTagMutability,
+      encryption: this.config.ecr.encryption,
+      lifecycleMaxImageAgeDays: this.config.ecr.lifecycleMaxImageAgeDays,
+      removalPolicy: this.config.ecr.removalPolicy,
     });
     return this;
   }
 
   /**
-   * Configure the CI/CD GitHub ECR push role.
-   * @returns this
+   * Defines the IAM policy statements needed for CI/CD to push to ECR.
+   * Must be called after withEcr().
    */
   public withCiEcrPushRole(): this {
     if (!this.repo) {
-      throw new Error(
-        'ECR repository must be configured before creating CI/CD GitHub ECR push role',
-      );
+      throw new Error('Call withEcr() before withCiEcrPushRole().');
     }
+
     this.ciGithubEcrRoles = [
       new iam.PolicyStatement({
         actions: [
@@ -104,53 +90,40 @@ export class SharedServicesBuilder {
           'ecs:UpdateService',
           'iam:PassRole',
         ],
-        resources: [`${this.repo?.repository.repositoryArn}`],
+        resources: [this.repo.repository.repositoryArn],
       }),
     ];
     return this;
   }
 
   /**
-   * Configure a repository OIDC role for CI/CD.
-   * @returns this
+   * Creates the GitHub OIDC provider and CI role.
+   * Must be called after withEcr() and withCiEcrPushRole().
    */
   public withGitHubOidc(): this {
     if (!this.repo) {
-      throw new Error(
-        'ECR repository must be created before adding CI GitHub Role',
-      );
+      throw new Error('Call withEcr() before withGitHubOidc().');
     }
     if (!this.ciGithubEcrRoles) {
-      throw new Error(
-        'CI GitHub ECR roles must be defined before adding CI GitHub Role',
-      );
+      throw new Error('Call withCiEcrPushRole() before withGitHubOidc().');
     }
-    if (!this.props.ecr) {
-      throw new Error(
-        'ECR configuration must be provided before adding CI GitHub Role',
-      );
-    }
-    if (!this.props.oidc) {
-      throw new Error(
-        'OIDC configuration must be provided before adding CI GitHub Role',
-      );
-    }
+
+    const { oidc } = this.config;
 
     new OidcCiRoleConstruct(this.scope, 'GithubCiIdentity', {
-      repoOrg: this.props.oidc.applicationRepository.owner,
-      repoName: this.props.oidc.applicationRepository.name,
+      repoOrg: oidc.applicationRepository.owner,
+      repoName: oidc.applicationRepository.name,
       provider: {
-        name: this.props.oidc.provider.name,
-        url: this.props.oidc.provider.url,
-        clientIds: this.props.oidc.provider.clientIds,
-        thumbprints: this.props.oidc.provider.thumbprints,
+        name: oidc.provider.name,
+        url: oidc.provider.url,
+        clientIds: oidc.provider.clientIds,
+        thumbprints: oidc.provider.thumbprints,
       },
       ciRole: {
-        roleName: this.props.oidc.ciRole.name,
-        description: this.props.oidc.ciRole.description,
-        stringEquals: this.props.oidc.ciRole.stringEqualityConditions,
-
-        stringLike: this.props.oidc.ciRole.stringLikeConditions,
+        roleName: oidc.ciRole.name,
+        description: oidc.ciRole.description,
+        stringEquals: oidc.ciRole.stringEqualityConditions,
+        stringLike: oidc.ciRole.stringLikeConditions,
         maxSessionDuration: cdk.Duration.hours(1),
       },
       ecr: { repo: this.repo.repository },
@@ -160,9 +133,7 @@ export class SharedServicesBuilder {
   }
 
   /**
-   * Create observability resources and integrate with event router.
-   * @param routerProps
-   * @returns this
+   * Creates the EventBridge router for observability.
    */
   public withObservability(routerProps: EventRouterProps): this {
     new EventRouter(this.scope, `${this.idPrefix}-Observability`, routerProps);
@@ -170,49 +141,67 @@ export class SharedServicesBuilder {
   }
 
   /**
-   * Add Ops Runbook construct to run SSM Automation when the specified stack is created.
-   * @returns this
+   * Creates the SSM Automation runbook for migration bootstrap.
+   * No-ops silently if migrationOps config is absent — not all pipelines
+   * require migration automation.
    */
   public withMigrationBootstrap(): this {
-    if (!this.props.migrationOps) {
+    if (!this.config.migrationOps) {
+      return this; // optional feature — no-op, no throw
+    }
+    if (!this.config.migrationStorage) {
       throw new Error(
-        'Migration Ops configuration is required to create Ops Runbook',
+        'migrationStorage config is required when migrationOps is provided.',
       );
     }
-    if (!this.props.migrationStorage) {
-      throw new Error(
-        'Migration Storage configuration is required to create Ops Runbook with migration storage integration',
-      );
-    }
+
     this.migrationOpsRunbook = new OpsRunbookConstruct(
       this.scope,
       'MigrationBootstrapRunbook',
       {
-        migrationOps: this.props.migrationOps,
-        bucketName: this.props.migrationStorage.s3Bucket?.name,
+        migrationOps: this.config.migrationOps,
+        bucketName: this.config.migrationStorage.s3Bucket?.name,
       },
     );
     return this;
   }
 
   /**
-   * Adds Cognito resources to the stack, including User Pool, custom domain with certificate, and secrets for user pool credentials.
-   * @returns this
+   * Creates migration storage resources (S3 bucket, DynamoDB table).
+   * No-ops silently if migrationStorage config is absent.
+   */
+  public withMigrationStorage(): this {
+    if (!this.config.migrationStorage?.s3Bucket) {
+      return this; // optional feature — no-op, no throw
+    }
+
+    this.s3Construct = new S3StorageConstruct(
+      this.scope,
+      'MigrationStorageBucket',
+      this.config.migrationStorage.s3Bucket,
+    );
+    return this;
+  }
+
+  /**
+   * Creates Cognito User Pool, custom domain, certificate, and secrets.
+   * No-ops silently if cognito config is absent — not all pipelines
+   * require Cognito.
    */
   public withCognito(): this {
-    if (!this.props.cognito) {
-      throw new Error(
-        'Cognito configuration is required to create Cognito resources',
-      );
+    if (!this.config.cognito) {
+      return this; // optional feature — no-op, no throw
     }
+
     const cognitoConstruct = new CognitoConstruct(
       this.scope,
       'CognitoConstruct',
       {
         idPrefix: `${this.idPrefix}-Cognito`,
-        cognito: this.props.cognito,
+        cognito: this.config.cognito,
       },
     );
+
     this.userPool = cognitoConstruct.createUserPool();
     this.domainCert = cognitoConstruct.customDomainAndCert(this.userPool);
     this.secrets = cognitoConstruct.createSecrets(this.userPool);
@@ -221,57 +210,36 @@ export class SharedServicesBuilder {
   }
 
   /**
-   * Adds migration storage resources to the stack, such as S3 buckets or DynamoDB tables.
-   * @returns this
-   */
-  public withMigrationStorage(): this {
-    if (!this.props.migrationStorage) {
-      throw new Error(
-        'Migration Storage configuration is required to create migration storage resources',
-      );
-    }
-    if (this.props.migrationStorage.s3Bucket) {
-      this.s3Construct = new S3StorageConstruct(
-        this.scope,
-        'MigrationStorageBucket',
-        this.props.migrationStorage.s3Bucket,
-      );
-    }
-    return this;
-  }
-
-  /**
-   * Optional: define CDK outputs in one place.
+   * Emits CfnOutputs for constructed resources.
+   * Export names are injected via config — no static fallbacks.
    */
   public outputs(): this {
-    if (this.userPool) {
-      new cdk.CfnOutput(this.scope, 'cognitoUserPoolId', {
+    const names = this.config.exportNames;
+
+    if (this.userPool && names?.cognitoUserPoolId) {
+      new cdk.CfnOutput(this.scope, 'CognitoUserPoolId', {
         value: this.userPool.userPool.userPoolId,
         description: 'Cognito User Pool ID',
-        exportName:
-          ResourceConfigFacade.ExportedValueName.cognito?.userPoolId ||
-          `${this.idPrefix}-CognitoUserPoolId`,
+        exportName: names.cognitoUserPoolId,
       });
     }
-    if (this.domainCert) {
-      new cdk.CfnOutput(this.scope, 'cognitoDomainCertArn', {
+
+    if (this.domainCert && names?.cognitoDomainCertArn) {
+      new cdk.CfnOutput(this.scope, 'CognitoDomainCertArn', {
         value: this.domainCert.certificateArn,
         description: 'Cognito Custom Domain Certificate ARN',
-        exportName:
-          ResourceConfigFacade.ExportedValueName.cognito?.certificateArn ||
-          `${this.idPrefix}-CognitoDomainCertArn`,
+        exportName: names.cognitoDomainCertArn,
       });
     }
-    if (this.s3Construct) {
-      new cdk.CfnOutput(this.scope, 'migrationStorageBucketArn', {
+
+    if (this.s3Construct && names?.migrationStorageBucketArn) {
+      new cdk.CfnOutput(this.scope, 'MigrationStorageBucketArn', {
         value: this.s3Construct.bucket.bucketArn,
         description: 'Migration Storage Bucket ARN',
-        exportName:
-          ResourceConfigFacade.ExportedValueName.storage
-            ?.migrationStorageBucketArn ||
-          `${this.idPrefix}-MigrationStorageBucketArn`,
+        exportName: names.migrationStorageBucketArn,
       });
     }
+
     return this;
   }
 }
