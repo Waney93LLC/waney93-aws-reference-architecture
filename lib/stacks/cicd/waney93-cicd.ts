@@ -7,6 +7,7 @@ import { PipelineConstruct } from '../../constructs/pipeline';
 import { FoundationsStage } from '../../stages/foundations';
 import { AppStage } from '../../stages/app';
 import { getWaney93PipelineAConfig } from '../../config/pipelines/waney93';
+import { CodePipeline } from 'aws-cdk-lib/pipelines';
 
 /**
  * Waney93CICDStack
@@ -15,6 +16,7 @@ import { getWaney93PipelineAConfig } from '../../config/pipelines/waney93';
  *   Stack entry point for the Waney93 CI/CD pipeline.
  */
 export class Waney93CICDStack extends cdk.Stack {
+  public pipeline: CodePipeline;
   /**
    * Waney93CICDStack constructor that instantiates the pipeline construct.
    * Note: the pipeline construct requires the followings:
@@ -95,12 +97,12 @@ export class Waney93CICDStack extends cdk.Stack {
     //     ],
     //   },
     // );
-   
-    const foundationsWave = pipelineConstruct.pipeline.addWave(
-      `${stage}-Foundations`,
-    );
+
+    this.pipeline = pipelineConstruct.pipeline;
+
+    const foundationsWave = this.pipeline.addWave(`${stage}-Foundations`);
     const sharedStage = new FoundationsStage(
-      pipelineConstruct.pipeline,
+      this.pipeline,
       `${stage}-SharedServices`,
       {
         env: env,
@@ -112,11 +114,15 @@ export class Waney93CICDStack extends cdk.Stack {
       foundationsWave.addStage(sharedStage);
     }
 
-    const appWave = pipelineConstruct.pipeline.addWave(`${stage}-App`);
-    const appStage = new AppStage(pipelineConstruct.pipeline, `${stage}-AppStage`, {
-      env: env,
-      stage,
-    });
+    const appWave = this.pipeline.addWave(`${stage}-App`);
+    const appStage = new AppStage(
+      this.pipeline,
+      `${stage}-AppStage`,
+      {
+        env: env,
+        stage,
+      },
+    );
     appWave.addStage(appStage);
   }
 }
