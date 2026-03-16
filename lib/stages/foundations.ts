@@ -5,6 +5,7 @@ import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { FoundationStageProps } from '../interfaces/shared-services';
 import { SharedServicesStack } from '../stacks/shared-services';
 import { BaseInfrastructureStack } from '../stacks/base-infrastructure';
+import { getWaney93PipelineAConfig } from '../config/pipelines/waney93';
 
 /**
  * FoundationsStage
@@ -14,7 +15,6 @@ import { BaseInfrastructureStack } from '../stacks/base-infrastructure';
  *   appropriate configuration.
  */
 export class FoundationsStage extends cdk.Stage {
-  public readonly vpc: Vpc;
   /**
    * FoundationsStage constructor instantiates the SharedServicesStack & the InfrastructureStack.
    * @param scope - The construct scope
@@ -41,15 +41,11 @@ export class FoundationsStage extends cdk.Stage {
       this,
       'InfrastructureStack',
       {
-        description:
-          'Infrastructure stack for foundational resources (e.g., VPC, RDS, S3)',
-        tags: {
-          ManagedByPipeline: 'App-CdkPipeline',
-        },
-        ...props,
+        stage: props.stage,
+        config: getWaney93PipelineAConfig(this, props.stage),
+        env: props.env,
       },
     );
-    this.vpc = infrastructureStack.network?.vpc as Vpc;
 
     infrastructureStack.addDependency(
       sharedServicesStack,

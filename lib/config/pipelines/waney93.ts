@@ -19,7 +19,7 @@ import { SsmParameterResolver } from '../ssm-parameter-resolver';
  * - CDK tokens (Fn.importValue) are allowed — they are lazy references,
  *   not resource construction.
  */
-export function getPipelineAConfig(
+export function getWaney93PipelineAConfig(
   scope: Construct,
   stage: Stage,
 ): IBaseInfrastructureConfig {
