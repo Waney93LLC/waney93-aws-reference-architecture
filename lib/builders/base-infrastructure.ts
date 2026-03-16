@@ -16,6 +16,7 @@ import {
   IParameterResolver,
   ResolvedDatabaseCredentials,
 } from '../interfaces/parameter-resolver';
+import { RdsBastionConfig } from '../interfaces/bastion';
 
 /**
  * BaseInfrastructureBuilder
@@ -71,16 +72,13 @@ export class BaseInfrastructureBuilder {
   /**
    * withRdsBastion adds a bastion host for RDS access to the builder.
    */
-  public withRdsBastion(): this {
+  public withRdsBastion(config: RdsBastionConfig): this {
     if (!this.network)
       throw new Error('Call withNetwork() before withRdsBastion().');
-    if (!this.props.rdsBastion)
-      throw new Error(
-        'rdsBastion config is required to create RdsBastion construct.',
-      );
+
     const bastionConfig = new RdsBastionConfigBuilder(
       this.scope,
-      this.props.rdsBastion,
+      config,
       this.props.stage,
       this.network.vpc,
     ).build();

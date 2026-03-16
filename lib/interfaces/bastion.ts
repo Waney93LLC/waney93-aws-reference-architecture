@@ -36,7 +36,6 @@ export interface MigrationOperations {
 export interface BastionBaseConfig {
   subnetSelection?: ec2.SubnetSelection;
   bastionConfig: BastionInstanceConfig;
-  migrationOps: MigrationOperations;
   bastionSecGrpConfig: SecurityGroupConfig;
 }
 
@@ -52,6 +51,5 @@ export interface RdsBastionConfig {
     ami: ec2.IMachineImage;
   };
   securityGroupPorts: PortRule[];
-  parameterResolver: IParameterResolver;
   config: MIGRATION_OPS_CONFIG;
 }

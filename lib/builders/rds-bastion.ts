@@ -5,13 +5,9 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import {
   BastionBaseConfig,
   BastionInstanceConfig,
-  MigrationDatabaseCredentials,
-  MigrationOperations,
   RdsBastionConfig,
 } from '../interfaces/bastion';
 import {
-  getResourceParameterConfig,
-  ResourceConfigFacade,
   Stage,
 } from '../config/environment';
 import { SecurityGroupConfig } from '../interfaces/common';
@@ -29,38 +25,16 @@ export class RdsBastionConfigBuilder {
     const userData = this.createUserData();
     const role = this.createBastionRole();
     const securityGroup = this.createBastionSecurityGroup();
-    const resourceConfig = new ResourceConfigFacade(
-      this.props.parameterResolver,
-      getResourceParameterConfig(this.stage),
-    );
+    
 
     return {
       subnetSelection: this.props.subnetSelection,
       bastionConfig: this.createBastionInstanceConfig(userData, role),
-      migrationOps: this.getMigrationOpsConfig(resourceConfig),
       bastionSecGrpConfig: this.createSecurityGroupConfig(securityGroup),
     };
   }
 
-  private getMigrationOpsConfig(
-    resourceConfig: ResourceConfigFacade,
-  ): MigrationOperations {
-    const dbCreds = resourceConfig.getDatabaseCredentials();
-    const dbCredentials: MigrationDatabaseCredentials = {
-      loginSecretName: dbCreds.loginSecretName,
-      appUser: {
-        name: dbCreds.appUserName,
-        secretName: dbCreds.appUserSecretName,
-      },
-    };
 
-    return {
-      config: {
-        ...this.props.config
-      },
-      databaseCredentials: dbCredentials,
-    };
-  }
 
   private createUserData(): ec2.UserData {
     const userData = ec2.UserData.forLinux();

@@ -71,7 +71,31 @@ export class BaseInfrastructureStack extends cdk.Stack {
     };
   }
 
+    private getMigrationOpsConfig(
+      resourceConfig: ResourceConfigFacade,
+    ): MigrationOperations {
+      const dbCreds = resourceConfig.getDatabaseCredentials();
+      const dbCredentials: MigrationDatabaseCredentials = {
+        loginSecretName: dbCreds.loginSecretName,
+        appUser: {
+          name: dbCreds.appUserName,
+          secretName: dbCreds.appUserSecretName,
+        },
+      };
+  
+      return {
+        config: {
+          ...this.props.config
+        },
+        databaseCredentials: dbCredentials,
+      };
+    }
+
   static getBastionConfig(scope: Construct, stage: Stage): RdsBastionConfig {
+    const resourceConfig = new ResourceConfigFacade(
+      this.props.parameterResolver,
+      getResourceParameterConfig(this.stage),
+    );
     return {
       userDataCommands: [
         'set -eux',
@@ -91,7 +115,6 @@ export class BaseInfrastructureStack extends cdk.Stack {
         },
       ],
       config: SharedServicesStack.getMigrationOpsConfig(scope, stage),
-      parameterResolver: new SsmParameterResolver(scope),
     };
   }
 

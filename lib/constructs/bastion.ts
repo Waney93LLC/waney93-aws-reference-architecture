@@ -4,9 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
-import { MigrationOperations, BastionConfig } from '../interfaces/bastion';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
-import { getS3MigrationScriptSteps } from '../config/migrations/templates';
+import {BastionConfig } from '../interfaces/bastion';
 import { ResourceConfigFacade } from '../config/environment';
 
 /**
@@ -29,7 +27,6 @@ export class RdsBastion extends Construct {
       vpc,
       subnetSelection = { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
       bastionConfig,
-      migrationOps,
       bastionSecGrpConfig,
     } = props;
 
@@ -40,7 +37,7 @@ export class RdsBastion extends Construct {
     }
 
     this.role = bastionConfig.role;
-    const { config } = migrationOps;
+ 
 
     // Allow sending SSM command against the custom document (if you create it)
     this.role.addToPrincipalPolicy(
