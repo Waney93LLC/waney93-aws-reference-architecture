@@ -114,15 +114,15 @@ export class Waney93CICDStack extends cdk.Stack {
       foundationsWave.addStage(sharedStage);
     }
 
-    const appWave = this.pipeline.addWave(`${stage}-App`);
-    const appStage = new AppStage(
-      this,
-      `${stage}-AppStage`,
-      {
-        env: env,
-        stage,
-      },
-    );
-    appWave.addStage(appStage);
+    // const appWave = this.pipeline.addWave(`${stage}-App`);
+    // const appStage = new AppStage(
+    //   this,
+    //   `${stage}-AppStage`,
+    //   {
+    //     env: env,
+    //     stage,
+    //   },
+    // );
+    // appWave.addStage(appStage);
   }
 }

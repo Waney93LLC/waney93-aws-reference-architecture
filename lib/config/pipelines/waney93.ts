@@ -48,7 +48,7 @@ export function getWaney93PipelineAConfig(
   const env = getEnvConfig(stage);
   const resourceConfig = new ResourceConfigFacade(
     new SsmParameterResolver(scope),
-    getResourceParameterConfig(stage, env.pipeline.name),
+    getResourceParameterConfig(stage),
   );
   const identity = resourceConfig.getPipelineIdentityConfig();
 
@@ -216,7 +216,7 @@ function buildMigrationOpsConfig(
 ): ISharedServicesConfig['migrationOps'] {
   const resourceConfig = new ResourceConfigFacade(
     new SsmParameterResolver(scope),
-    getResourceParameterConfig(stage,env.pipeline.name),
+    getResourceParameterConfig(stage),
   );
   const scriptConfig = resourceConfig.getMigrationScriptConfig();
 

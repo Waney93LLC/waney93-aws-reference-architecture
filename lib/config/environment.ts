@@ -81,27 +81,26 @@ export function getEnvConfig(stage: Stage): EnvironmentConfig {
 
 export function getResourceParameterConfig(
   stage: Stage,
-  pipelineName: string,
 ): ResourceParameterConfig {
-   const base = `/waney93/${pipelineName}`;
+   const base = `/waney93/${stage}`;
   return {
     databaseCredentials: {
-      loginSecretName: `/waney93/${stage}/aurora/secret-name`,
+      loginSecretName: `${base}/aurora/secret-name`,
       appUser: {
-        name: `/waney93/${stage}/app-user-name`,
-        secretName: `/waney93/${stage}/aurora/app-user-secret-name`,
+        name: `${base}/app-user-name`,
+        secretName: `${base}/aurora/app-user-secret-name`,
       },
-      adminUsername: `/waney93/${stage}/aurora/admin-name`,
+      adminUsername: `${base}/aurora/admin-name`,
     },
     migration: {
-      folderPath: `/waney93/${stage}/migration-scripts/folder`,
-      entryFile: `/waney93/${stage}/migration-scripts/entryfile`,
-      description: `/waney93/${stage}/migration-scripts/description`,
+      folderPath: `${base}/migration-scripts/folder`,
+      entryFile: `${base}/migration-scripts/entryfile`,
+      description: `${base}/migration-scripts/description`,
     },
     ecs: {
-      apiCertArn: `/waney93/${stage}/ecs/api-cert-arn`,
-      imageTag: `/waney93/${stage}/ecs/image-tag`,
-      alertEmailAddress: `/waney93/${stage}/ecs/alert-email-address`,
+      apiCertArn: `${base}/ecs/api-cert-arn`,
+      imageTag: `${base}/ecs/image-tag`,
+      alertEmailAddress: `${base}/ecs/alert-email-address`,
     },
     pipelineIdentity: {
       bastionTagValue: `${base}/identity/bastion-tag-value`,

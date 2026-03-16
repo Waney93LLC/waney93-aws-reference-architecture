@@ -166,7 +166,7 @@ export class BaseInfrastructureBuilder {
   ): ResolvedDatabaseCredentials {
     const resourceConfig = new ResourceConfigFacade(
       parameterResolver,
-      getResourceParameterConfig(stage,this.props.pipelineName),
+      getResourceParameterConfig(stage),
     );
     return resourceConfig.getDatabaseCredentials();
   }
