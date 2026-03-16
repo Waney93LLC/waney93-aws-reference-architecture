@@ -29,5 +29,4 @@ export interface AppStackProps extends cdk.StackProps {
 
 export interface AppStageProps extends cdk.StageProps {
   stage: Stage;
-  config: IAppConfig;
 }

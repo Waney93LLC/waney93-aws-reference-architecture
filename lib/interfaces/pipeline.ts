@@ -37,7 +37,6 @@ export interface PipelineAConfig {
 
 export interface FoundationStageProps {
   stage: Stage;
-  config: IPipelineAConfig;
   env?: cdk.Environment;
 }
 

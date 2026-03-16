@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { AppStageProps } from '../interfaces/app';
 import { AppStack } from '../stacks/app';
+import { getWaney93PipelineAConfig } from '../config/pipelines/waney93';
 
 /**
  * AppStage
@@ -19,10 +20,11 @@ export class AppStage extends cdk.Stage {
    */
   constructor(scope: Construct, id: string, props: AppStageProps) {
     super(scope, id, props);
+    const config = getWaney93PipelineAConfig(this, props.stage);
 
     new AppStack(this, 'PipelineA-App', {
       stage: props.stage,
-      config: props.config,
+      config: config.app,
       env: props.env,
     });
   }

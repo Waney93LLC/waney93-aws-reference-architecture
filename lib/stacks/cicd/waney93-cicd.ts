@@ -101,7 +101,6 @@ export class Waney93CICDStack extends cdk.Stack {
     );
     const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
       env: env,
-      config: config,
       stage: props.stage,
     });
 
@@ -113,7 +112,6 @@ export class Waney93CICDStack extends cdk.Stack {
     const appStage = new AppStage(this, `${stage}-AppStage`, {
       env: env,
       stage,
-      config: config.app,
     });
     appWave.addStage(appStage);
   }

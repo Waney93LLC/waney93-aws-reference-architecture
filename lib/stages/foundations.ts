@@ -4,6 +4,7 @@ import { Construct } from 'constructs';
 import { FoundationStageProps } from '../interfaces/pipeline';
 import { SharedServicesStack } from '../stacks/shared-services';
 import { BaseInfrastructureStack } from '../stacks/base-infrastructure';
+import { getWaney93PipelineAConfig } from '../config/pipelines/waney93';
 
 /**
  * FoundationsStage
@@ -21,12 +22,14 @@ export class FoundationsStage extends cdk.Stage {
    */
   constructor(scope: Construct, id: string, props: FoundationStageProps) {
     super(scope, id, props);
+    const config = getWaney93PipelineAConfig(this, props.stage);
+
     const sharedServicesStack = new SharedServicesStack(
       this,
       'SharedServicesStack',
       {
         stage: props.stage,
-        config: props.config.sharedServices,
+        config: config.sharedServices,
         env: props.env,
       },
     );
@@ -36,7 +39,7 @@ export class FoundationsStage extends cdk.Stage {
       'InfrastructureStack',
       {
         stage: props.stage,
-        config: props.config.baseInfrastructure,
+        config: config.baseInfrastructure,
         env: props.env,
       },
     );
