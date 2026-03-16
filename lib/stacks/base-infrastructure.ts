@@ -27,8 +27,9 @@ export class BaseInfrastructureStack extends cdk.Stack {
   ) {
     super(scope, id, props);
 
-    const builder = new BaseInfrastructureBuilder(this, id, {
+    new BaseInfrastructureBuilder(this, id, {
       stage: props.stage,
+      pipelineName: props.config.pipelineName,
       network: props.config.network,
       exportNames: props.config.exportNames,
     })

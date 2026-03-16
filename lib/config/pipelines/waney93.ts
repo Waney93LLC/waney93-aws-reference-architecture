@@ -70,6 +70,7 @@ function buildBaseInfrastructureConfig(
     network: buildNetworkConfig(scope),
     bastion: buildBastionConfig(env),
     rds: buildRdsConfig(scope),
+    pipelineName: env.pipeline.name,
     exportNames: {
       vpcId: EXPORTS.vpcId,
       appClientSgId: EXPORTS.appClientSgId,

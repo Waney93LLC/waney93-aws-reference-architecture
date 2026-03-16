@@ -14,6 +14,7 @@ import { AuroraDbConfig, RdsBastionConfig } from './bastion';
  */
 export interface BaseInfrastructureProps {
   stage: Stage;
+  pipelineName: string;
   network: NetworkConfig;
   exportNames?: {
     vpcId?: string;
@@ -47,6 +48,7 @@ export interface IBaseInfrastructureConfig {
   network: NetworkConfig;
   bastion: RdsBastionConfig;
   rds: AuroraDbConfig;
+  pipelineName: string;
   exportNames?: {
     vpcId?: string;
     appClientSgId?: string;
