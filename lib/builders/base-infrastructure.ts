@@ -9,7 +9,7 @@ import {
   ResourceConfigFacade,
   Stage,
 } from '../config/environment';
-import { Rds } from '../constructs/rds';
+import { AuroraDB } from '../constructs/rds/aurora';
 import { SecurityGroupConfig } from '../interfaces/common';
 import {
   IParameterResolver,
@@ -18,6 +18,7 @@ import {
 
 import { BastionIamRole } from '../constructs/rds-bastion/bastion-iam-role';
 import { RdsBastionConfig } from '../interfaces/bastion';
+import { IRdsIngressSource } from '../interfaces/rds';
 
 /**
  * BaseInfrastructureBuilder
@@ -37,7 +38,7 @@ export class BaseInfrastructureBuilder {
   private readonly props: Required<BaseInfrastructureBuilderProps>;
 
   private appClientSg?: ec2.SecurityGroup;
-  private data?: Rds;
+  private data?: AuroraDB;
   private bastion?: RdsBastion;
 
   /**
@@ -111,53 +112,55 @@ export class BaseInfrastructureBuilder {
     return this;
   }
 
-  /**
-   * Adds an RDS cluster and related resources to the builder.
-   * The security group has two seats - one for the bastion and one for an app client.
-   */
-  public withRds(): this {
+  public withAuroraDB(): this {
     if (!this.props.rds)
-      throw new Error('withRds is called with rds property not configured.');
-    if (!this.network) throw new Error('Call withNetwork() before withRds().');
-    if (!this.bastion) throw new Error('Call withRdsBastion() before withRds().');
+      throw new Error('withAuroraDB() called but rds config is not set.');
+    if (!this.network) throw new Error('Call withNetwork() before withAuroraDB().');
+    if (!this.bastion)
+      throw new Error('Call withRdsBastion() before withAuroraDB().');
     if (!this.appClientSg)
-      throw new Error('Call withAppClientSecurityGroup() before withRds().');
-    const bastionSecGrpConfig: SecurityGroupConfig = {
-      portRules: this.props.rdsBastion.securityGroupPorts,
-      definition: this.bastion.securityGroup,
-    };
-    const appClientSecurityGroup: SecurityGroupConfig = {
-      portRules: this.props.rds.portRules,
-      definition: this.appClientSg,
-    };
-    const dbCredentials = this.getRdsClusterConfig(
+      throw new Error('Call withAppClientSecurityGroup() before withAuroraDB().');
+
+    const ingressSources: IRdsIngressSource[] = [
+      {
+        securityGroup: this.bastion.securityGroup,
+        portRules: this.props.rds.bastionPortRules,
+      },
+      {
+        securityGroup: this.appClientSg,
+        portRules: this.props.rds.appClientPortRules,
+      },
+    ];
+
+    const credentials = this.getRdsClusterConfig(
       this.props.rds.parameterResolver,
       this.props.stage,
     );
-    const clusterConfig = {
-      name: this.props.rds.name,
-      id: this.props.rds.id,
-      databaseName: this.props.rds.databaseName,
-      deletionProtection: this.props.rds.deletionProtection,
-      admin: {
-        username: dbCredentials.adminUsername,
-        secretName: dbCredentials.loginSecretName,
-      },
-      app: {
-        username: dbCredentials.appUserName,
-        secretName: dbCredentials.appUserSecretName,
-      },
-    };
 
-    this.data = new Rds(this.scope, `${this.idPrefix}-Data`, {
-      vpc: this.network.vpc,
-      secGrpConfigs: [bastionSecGrpConfig, appClientSecurityGroup],
-      clusterConfig,
-      ...this.props.rds,
+    this.data = new AuroraDB(this.scope, `${this.idPrefix}-Data`, {
+      network: { vpc: this.network.vpc },
+      ingressSources,
+      cluster: {
+        id: this.props.rds.id,
+        name: this.props.rds.name,
+        databaseName: this.props.rds.databaseName,
+        deletionProtection: this.props.rds.deletionProtection,
+        capacity: this.props.rds.capacity,
+        readers: this.props.rds.readers,
+        admin: {
+          username: credentials.adminUsername,
+          secretName: credentials.loginSecretName,
+        },
+      },
+      appUser: {
+        username: credentials.appUserName,
+        secretName: credentials.appUserSecretName,
+      },
     });
 
     return this;
   }
+
 
   private getRdsClusterConfig(
     parameterResolver: IParameterResolver,
