@@ -31,19 +31,19 @@ export class FoundationsStage extends cdk.Stage {
       },
     );
 
-    // const infrastructureStack = new BaseInfrastructureStack(
-    //   this,
-    //   'InfrastructureStack',
-    //   {
-    //     stage: props.stage,
-    //     config: props.config.baseInfrastructure,
-    //     env: props.env,
-    //   },
-    // );
+    const infrastructureStack = new BaseInfrastructureStack(
+      this,
+      'InfrastructureStack',
+      {
+        stage: props.stage,
+        config: props.config.baseInfrastructure,
+        env: props.env,
+      },
+    );
 
-    // infrastructureStack.addDependency(
-    //   sharedServicesStack,
-    //   'Ensure SharedServicesStack is deployed before BaseInfrastructureStack.',
-    // );
+    infrastructureStack.addDependency(
+      sharedServicesStack,
+      'Ensure SharedServicesStack is deployed before BaseInfrastructureStack.',
+    );
   }
 }

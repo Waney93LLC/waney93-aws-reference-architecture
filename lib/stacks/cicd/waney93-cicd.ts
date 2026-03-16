@@ -96,25 +96,25 @@ export class Waney93CICDStack extends cdk.Stack {
     //   },
     // );
    
-    // const foundationsWave = pipelineConstruct.pipeline.addWave(
-    //   `${stage}-Foundations`,
-    // );
-    // const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
-    //   env: env,
-    //   config: config,
-    //   stage: props.stage,
-    // });
+    const foundationsWave = pipelineConstruct.pipeline.addWave(
+      `${stage}-Foundations`,
+    );
+    const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
+      env: env,
+      config: config,
+      stage: props.stage,
+    });
 
-    // if (process.env.SKIP_FOUNDATIONS !== 'true') {
-    //   foundationsWave.addStage(sharedStage);
-    // }
+    if (process.env.SKIP_FOUNDATIONS !== 'true') {
+      foundationsWave.addStage(sharedStage);
+    }
 
-    // const appWave = pipelineConstruct.pipeline.addWave(`${stage}-App`);
-    // const appStage = new AppStage(this, `${stage}-AppStage`, {
-    //   env: env,
-    //   stage,
-    //   config: config.app,
-    // });
-    // appWave.addStage(appStage);
+    const appWave = pipelineConstruct.pipeline.addWave(`${stage}-App`);
+    const appStage = new AppStage(this, `${stage}-AppStage`, {
+      env: env,
+      stage,
+      config: config.app,
+    });
+    appWave.addStage(appStage);
   }
 }
