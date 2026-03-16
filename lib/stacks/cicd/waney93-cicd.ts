@@ -6,6 +6,7 @@ import { Waney93CICDStackProps } from './cicd-stack-props';
 import { PipelineConstruct } from '../../constructs/pipeline';
 import { FoundationsStage } from '../../stages/foundations';
 import { AppStage } from '../../stages/app';
+import { getWaney93PipelineAConfig } from '../../config/pipelines/waney93';
 
 /**
  * Waney93CICDStack
@@ -26,7 +27,8 @@ export class Waney93CICDStack extends cdk.Stack {
    */
   constructor(scope: Construct, id: string, props: Waney93CICDStackProps) {
     super(scope, id, props);
-    const { stage, env, config } = props;
+    const { stage, env } = props;
+    const config = getWaney93PipelineAConfig(this, stage);
 
     if (!config) {
       throw new Error(`No config found for stage: ${stage}`);
@@ -94,18 +96,18 @@ export class Waney93CICDStack extends cdk.Stack {
     //   },
     // );
    
-    const foundationsWave = pipelineConstruct.pipeline.addWave(
-      `${stage}-Foundations`,
-    );
-    const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
-      env: env,
-      config: config,
-      stage: props.stage,
-    });
+    // const foundationsWave = pipelineConstruct.pipeline.addWave(
+    //   `${stage}-Foundations`,
+    // );
+    // const sharedStage = new FoundationsStage(this, `${stage}-SharedServices`, {
+    //   env: env,
+    //   config: config,
+    //   stage: props.stage,
+    // });
 
-    if (process.env.SKIP_FOUNDATIONS !== 'true') {
-      foundationsWave.addStage(sharedStage);
-    }
+    // if (process.env.SKIP_FOUNDATIONS !== 'true') {
+    //   foundationsWave.addStage(sharedStage);
+    // }
 
     // const appWave = pipelineConstruct.pipeline.addWave(`${stage}-App`);
     // const appStage = new AppStage(this, `${stage}-AppStage`, {

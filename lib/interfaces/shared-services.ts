@@ -133,5 +133,4 @@ export interface OpsRunbookConstructProps {
 
 export interface Waney93CicdObservabilityStackProps extends cdk.StackProps {
   stage: Stage;
-  config: ISharedServicesConfig;
 }

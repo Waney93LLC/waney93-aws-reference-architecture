@@ -8,5 +8,4 @@ import { Waney93PipelineAConfig } from '../../config/pipelines/waney93';
  */
 export interface Waney93CICDStackProps extends cdk.StackProps {
   stage: Stage;
-  config: Waney93PipelineAConfig;
 }
