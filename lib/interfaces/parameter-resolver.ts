@@ -1,4 +1,4 @@
-import { ECS_PARAM_CONFIG } from "./ecs";
+import { EcsParamConfig } from './ecs';
 
 /**
  * Interface for resolving parameters from various sources (e.g., environment variables, configuration files, etc.).
@@ -36,7 +36,7 @@ export interface MigrationScriptConfig {
 export interface ResourceParameterConfig {
   databaseCredentials: DatabaseCredentialParameterNames;
   migration: MigrationScriptConfig;
-  ecs: ECS_PARAM_CONFIG;
+  ecs: EcsParamConfig;
 }
 
 /**

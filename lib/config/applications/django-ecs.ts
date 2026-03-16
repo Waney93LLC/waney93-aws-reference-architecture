@@ -14,7 +14,7 @@ import {
   ALB_TO_TASKS_BUILDER,
   HEALTH_CHECK_BUILDER,
   ALERTS_BUILDER,
-  ECS_PARAM_CONFIG
+  EcsParamConfig,
 } from '../../interfaces/ecs';
 
 
@@ -31,7 +31,7 @@ export interface DjangoEcsBuilders {
 
 export function createDjangoEcsBuilders(
   scope: Construct,
-  ecsConfig: ECS_PARAM_CONFIG,
+  ecsConfig: EcsParamConfig,
 ): DjangoEcsBuilders {
   const serviceName = 'DjangoApp';
 

@@ -238,7 +238,7 @@ export interface ALERTS_BUILDER {
   taskStoppedStopCodes: string[];
 }
 
-export type ECS_PARAM_CONFIG = {
+export type EcsParamConfig = {
   apiCertArn: string;
   imageTag: string;
   alertEmailAddress: string;

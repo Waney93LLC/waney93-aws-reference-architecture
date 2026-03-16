@@ -1,4 +1,4 @@
-import { ECS_PARAM_CONFIG } from '../interfaces/ecs';
+import { EcsParamConfig } from '../interfaces/ecs';
 import {
   IParameterResolver,
   MigrationScriptConfig,
@@ -145,7 +145,7 @@ export class ResourceConfigFacade {
     };
   }
 
-  public getEcsConfig(): ECS_PARAM_CONFIG {
+  public getEcsConfig(): EcsParamConfig {
     return {
       apiCertArn: this.resolver.getString(this.config.ecs.apiCertArn),
       imageTag: this.resolver.getString(this.config.ecs.imageTag),
@@ -157,7 +157,9 @@ export class ResourceConfigFacade {
 
   public getCognitoConfig(envConfig: EnvironmentConfig['cognito']) {
     return {
-      cognitoCertArn:this.resolver.getString(envConfig?.acmCertificateArnParameter ?? ''),
-    }
+      cognitoCertArn: this.resolver.getString(
+        envConfig?.acmCertificateArnParameter ?? '',
+      ),
+    };
   }
 }

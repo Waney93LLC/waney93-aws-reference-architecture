@@ -3,8 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import { InterfaceVpcEndpointAwsService } from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { Stage } from '../config/environment';
-
-
+import { AuroraDbConfig, RdsBastionConfig } from './bastion';
 
 /**
  * BaseInfrastructureProps
@@ -22,8 +21,6 @@ export interface BaseInfrastructureProps {
   };
 }
 
-
-
 /**
  * BaseInfrastructureStackProps
  *
@@ -31,7 +28,8 @@ export interface BaseInfrastructureProps {
  *   Strongly-typed Stack props for BaseInfrastructureStack.
  */
 export interface BaseInfrastructureStackProps extends cdk.StackProps {
-  stage:Stage;
+  stage: Stage;
+  config: IBaseInfrastructureConfig;
 }
 
 export type NetworkConfig = {
@@ -43,4 +41,14 @@ export type NetworkConfig = {
   cidrMaskPublic?: number;
   cidrMaskPrivate: number;
   idPrefix: string;
-};   
+};
+
+export interface IBaseInfrastructureConfig {
+  network: NetworkConfig;
+  bastion: RdsBastionConfig;
+  rds: AuroraDbConfig;
+  exportNames?: {
+    vpcId?: string;
+    appClientSgId?: string;
+  };
+}

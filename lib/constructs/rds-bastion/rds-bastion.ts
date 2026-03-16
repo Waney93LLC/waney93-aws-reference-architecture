@@ -30,7 +30,7 @@ export class RdsBastion extends Construct {
     const sgConstruct = new BastionSecurityGroup(
       this,
       'SecurityGroup',
-      props.securityGroup,
+      { vpc: props.network.vpc, config: props.securityGroup },
     );
     this.securityGroup = sgConstruct.securityGroup;
 

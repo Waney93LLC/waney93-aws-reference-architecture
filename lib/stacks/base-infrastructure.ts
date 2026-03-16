@@ -1,18 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 import {
   BaseInfrastructureStackProps,
-  NETWORK_CONFIG,
 } from '../interfaces/base-infrastructure';
 import { BaseInfrastructureBuilder } from '../builders/base-infrastructure';
-import {
-  RdsBastionConfig,
-} from '../interfaces/bastion';
-import { SharedServicesStack } from './shared-services';
-import { Stage } from '../config/environment';
-import { SsmParameterResolver } from '../config/ssm-parameter-resolver';
 import { Network } from '../constructs/network';
 
 /**
@@ -23,7 +14,7 @@ import { Network } from '../constructs/network';
  *   Keep this thin; orchestration belongs in builders.
  */
 export class BaseInfrastructureStack extends cdk.Stack {
-  public readonly network?:Network;
+  public readonly network: Network | undefined;
   /**
    * BaseInfrastructureStack constructor that instantiates BaseInfrastructureBuilder
    * @param scope - The construct scope
@@ -37,96 +28,19 @@ export class BaseInfrastructureStack extends cdk.Stack {
   ) {
     super(scope, id, props);
 
-    const builder = new BaseInfrastructureBuilder(this, 'BaseInfrastructureBuilder', {
-      network: BaseInfrastructureStack.getNetworkConfig(this),
+    const builder = new BaseInfrastructureBuilder(this, id, {
       stage: props.stage,
-      rds: BaseInfrastructureStack.getRdsConfig(this),
+      network: props.config.network,
+      exportNames: props.config.exportNames,
     })
       .withNetwork()
-      .withRdsBastion()
+      .withRdsBastion(props.config.bastion)
       .withAppClientSecurityGroup()
-      .withAuroraDB()
+      .withAuroraDB(props.config.rds)
       .outputs();
 
-      this.network = builder.network ;
+    this.network = builder.network;
 
-
-    // Optional tagging convention
     cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
-  }
-
-  static getNetworkConfig(scope: Construct): NETWORK_CONFIG {
-    return {
-      maxAzs: 2,
-      natGateways: 1,
-      logGrp: new LogGroup(scope, 'VpcFlowLogs', {
-        retention: RetentionDays.ONE_DAY,
-        removalPolicy: cdk.RemovalPolicy.DESTROY, // keep RETAIN in prod
-      }),
-      cidrMaskPrivate: 24,
-      cidrMaskPublic: 24,
-      idPrefix: 'BaseVpc',
-    };
-  }
-
-    private getMigrationOpsConfig(
-      resourceConfig: ResourceConfigFacade,
-    ): MigrationOperations {
-      const dbCreds = resourceConfig.getDatabaseCredentials();
-      const dbCredentials: MigrationDatabaseCredentials = {
-        loginSecretName: dbCreds.loginSecretName,
-        appUser: {
-          name: dbCreds.appUserName,
-          secretName: dbCreds.appUserSecretName,
-        },
-      };
-  
-      return {
-        config: {
-          ...this.props.config
-        },
-        databaseCredentials: dbCredentials,
-      };
-    }
-
-  static getBastionConfig(scope: Construct, stage: Stage): RdsBastionConfig {
-
-    return {
-      userDataCommands: [
-        'set -eux',
-        'sudo dnf -y update',
-        'sudo dnf -y install --allowerasing curl postgresql17 python3 jq unzip',
-      ],
-
-      subnetSelection: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-      instance: {
-        type: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.NANO),
-        ami: ec2.MachineImage.latestAmazonLinux2023(),
-      },
-      securityGroupPorts: [
-        {
-          port: ec2.Port.tcp(5432),
-          description: 'Allow outbound access to databases',
-        },
-      ],
-      config: SharedServicesStack.getMigrationOpsConfig(scope, stage),
-    };
-  }
-
-  static getRdsConfig(scope: Construct): RdsConfig {
-    return {
-      name: 'django-rds-cluster',
-      id: 'djangodbcluster',
-      databaseName: 'djangodb',
-      deletionProtection: false, // set to true for prod
-      portRules: [
-        {
-          port: ec2.Port.tcp(5432),
-          description: 'Allow ECS tasks to connect to Aurora Postgres',
-        },
-      ],
-      parameterResolver: new SsmParameterResolver(scope),
-    };
-
   }
 }

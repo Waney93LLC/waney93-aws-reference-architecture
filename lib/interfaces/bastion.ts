@@ -12,8 +12,9 @@ export interface IBastionNetworkConfig {
 }
 
 export interface IBastionSecurityGroupConfig {
-  definition: ec2.SecurityGroup;
   portRules: IBastionPortRule[];
+  securityGroupName?: string; 
+  allowAllOutbound?: boolean;
 }
 
 export interface IBastionPortRule {
@@ -28,6 +29,11 @@ export interface IBastionInstanceConfig {
   detailedMonitoring?: boolean;
   tagKey?: string;
   tagValue?: string;
+}
+
+export interface BastionSecurityGroupProps {
+  vpc: ec2.IVpc; 
+  config: IBastionSecurityGroupConfig; 
 }
 
 export interface IBastionRoleProvider {
@@ -73,8 +79,4 @@ export interface AuroraDbConfig {
   readers?: IRdsClusterConfig['readers'];
   bastionPortRules: IRdsPortRule[];
   appClientPortRules: IRdsPortRule[];
-}
-
-export interface BastionConfig {
-
 }

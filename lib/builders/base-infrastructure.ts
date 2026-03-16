@@ -34,7 +34,6 @@ import {
  */
 export class BaseInfrastructureBuilder {
   public network?: Network;
-  private resolvedCredentials?: ResolvedDatabaseCredentials;
 
   private appClientSg?: ec2.SecurityGroup;
   private bastion?: RdsBastion;
