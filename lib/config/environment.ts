@@ -103,15 +103,11 @@ export function getResourceParameterConfig(
       alertEmailAddress: `${base}/ecs/alert-email-address`,
     },
     pipelineIdentity: {
-      bastionTagValue: `${base}/identity/bastion-tag-value`,
       ecrRepoName: `${base}/identity/ecr-repo-name`,
       exports: {
-        vpcId: `${base}/exports/vpc-id`,
-        appClientSgId: `${base}/exports/app-client-sg-id`,
-        migrationStorageBucketArn: `${base}/exports/migration-storage-bucket-arn`,
-      },
-      migrationStorage: {
-        bucketName: `${base}/migration/bucket-name`,
+        vpcId: `${base}-vpc-id`,
+        appClientSgId: `${base}-app-client-sg-id`,
+        migrationStorageBucketArn: `${base}-migration-storage-bucket-arn`,
       },
     },
   };
@@ -185,27 +181,13 @@ export class ResourceConfigFacade {
 
   public getPipelineIdentityConfig(): PipelineIdentityConfig {
     return {
-      bastionTagValue: this.resolver.getString(
-        this.config.pipelineIdentity.bastionTagValue,
-      ),
       ecrRepoName: this.resolver.getString(
         this.config.pipelineIdentity.ecrRepoName,
       ),
       exports: {
-        vpcId: this.resolver.getString(
-          this.config.pipelineIdentity.exports.vpcId,
-        ),
-        appClientSgId: this.resolver.getString(
-          this.config.pipelineIdentity.exports.appClientSgId,
-        ),
-        migrationStorageBucketArn: this.resolver.getString(
-          this.config.pipelineIdentity.exports.migrationStorageBucketArn,
-        ),
-      },
-      migrationStorage: {
-        bucketName: this.resolver.getString(
-          this.config.pipelineIdentity.migrationStorage.bucketName,
-        ),
+        vpcId: this.config.pipelineIdentity.exports.vpcId,
+        appClientSgId: this.config.pipelineIdentity.exports.appClientSgId,
+        migrationStorageBucketArn: this.config.pipelineIdentity.exports.migrationStorageBucketArn,
       },
     };
   }

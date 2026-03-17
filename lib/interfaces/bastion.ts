@@ -41,17 +41,14 @@ export interface IBastionRoleProvider {
   grantS3Access?(bucketArn: string): void;
 }
 
-export interface IBastionStorageConfig {
-  migrationStorageBucketExportName: string;
-}
 
 export interface RdsBastionProps {
   network: IBastionNetworkConfig;
   securityGroup: IBastionSecurityGroupConfig;
   instance: IBastionInstanceConfig;
-  roleProvider?: IBastionRoleProvider; 
+  roleProvider?: IBastionRoleProvider;
   runCommandDocumentName: string;
-  migrationStorage?: IBastionStorageConfig;
+  migrationStorageBucketArn: string;
 }
 
 export interface BastionInstanceProps {
@@ -65,7 +62,7 @@ export interface RdsBastionConfig {
   securityGroup: IBastionSecurityGroupConfig;
   instance: IBastionInstanceConfig;
   runCommandDocumentName: string;
-  migrationStorage?: IBastionStorageConfig;
+  migrationStorageBucketArn: string;
   roleProvider?: IBastionRoleProvider;
 }
 

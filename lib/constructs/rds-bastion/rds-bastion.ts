@@ -44,10 +44,8 @@ export class RdsBastion extends Construct {
         `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:document/${props.runCommandDocumentName}`,
       );
 
-      if (props.migrationStorage) {
-        const bucketArn = cdk.Fn.importValue(
-          props.migrationStorage.migrationStorageBucketExportName,
-        );
+      if (props.migrationStorageBucketArn) {
+        const bucketArn = cdk.Fn.importValue(props.migrationStorageBucketArn);
         roleProvider.grantS3Access(bucketArn);
       }
     }

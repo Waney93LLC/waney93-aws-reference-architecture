@@ -38,15 +38,11 @@ export interface ResourceParameterConfig {
   migration: MigrationScriptConfig;
   ecs: EcsParamConfig;
   pipelineIdentity: {
-    bastionTagValue: string;
     ecrRepoName: string;
     exports: {
       vpcId: string;
       appClientSgId: string;
       migrationStorageBucketArn: string;
-    };
-    migrationStorage: {
-      bucketName: string;
     };
   };
 }

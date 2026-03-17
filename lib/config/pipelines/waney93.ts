@@ -54,7 +54,7 @@ export function getWaney93PipelineConfig(
 
   return {
     envConfig: env,
-    baseInfrastructure: buildBaseInfrastructureConfig(scope, env),
+    baseInfrastructure: buildBaseInfrastructureConfig(scope, env, identity),
     sharedServices: buildSharedServicesConfig(scope, stage, env),
     app: buildAppConfig(resourceConfig, env, identity),
   };
@@ -65,10 +65,11 @@ export function getWaney93PipelineConfig(
 function buildBaseInfrastructureConfig(
   scope: Construct,
   env: EnvironmentConfig,
+  identity: PipelineIdentityConfig,
 ): IBaseInfrastructureConfig {
   return {
     network: buildNetworkConfig(scope),
-    bastion: buildBastionConfig(env),
+    bastion: buildBastionConfig(env, identity),
     rds: buildRdsConfig(scope),
     pipeline: env.pipeline,
     exportNames: {
@@ -96,6 +97,7 @@ function buildNetworkConfig(
 
 function buildBastionConfig(
   env: EnvironmentConfig,
+  identity: PipelineIdentityConfig,
 ): IBaseInfrastructureConfig['bastion'] {
   const userData = ec2.UserData.forLinux();
   userData.addCommands(
@@ -110,7 +112,7 @@ function buildBastionConfig(
       ami: ec2.MachineImage.latestAmazonLinux2023(),
       userData,
       detailedMonitoring: false,
-      tagKey: env.pipeline.bastion.tagKey, 
+      tagKey: env.pipeline.bastion.tagKey,
       tagValue: env.pipeline.bastion.tagValue,
     },
     securityGroup: {
@@ -123,9 +125,7 @@ function buildBastionConfig(
       allowAllOutbound: true,
     },
     runCommandDocumentName: 'AWS-RunShellScript',
-    migrationStorage: {
-      migrationStorageBucketExportName: EXPORTS.migrationStorageBucketName,
-    },
+    migrationStorageBucketArn: identity.exports.migrationStorageBucketArn,
   };
 }
 
@@ -271,7 +271,7 @@ function buildAppConfig(
       certArn: cognitoCertArn,
       appClientName: 'DjangoWebClient',
     },
-    ecrRepoName: identity.ecrRepoName,  // from SSM — no static method needed
+    ecrRepoName: identity.ecrRepoName,  
   };
 }
 

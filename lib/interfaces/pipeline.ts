@@ -46,14 +46,10 @@ export interface IPipelineAConfig {
 }
 
 export interface PipelineIdentityConfig {
-  bastionTagValue: string;
   ecrRepoName: string;
   exports: {
     vpcId: string;
     appClientSgId: string;
     migrationStorageBucketArn: string;
-  };
-  migrationStorage: {
-    bucketName: string;
   };
 }
