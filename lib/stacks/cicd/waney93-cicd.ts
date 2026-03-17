@@ -103,7 +103,7 @@ export class Waney93CICDStack extends cdk.Stack {
 
     const foundationsWave = this.pipeline.addWave(`${stage}-Foundations`);
     const sharedStage = new FoundationsStage(
-      this,
+      this.node.root,//referring to the app level since a stage cannot be a child of the cicd stack
       `${stage}-SharedServices`,
       {
         env: env,
