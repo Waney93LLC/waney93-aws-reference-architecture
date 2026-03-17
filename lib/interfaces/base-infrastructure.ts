@@ -30,7 +30,6 @@ export interface BaseInfrastructureProps {
  */
 export interface BaseInfrastructureStackProps extends cdk.StackProps {
   stage: Stage;
-  config: IBaseInfrastructureConfig;
 }
 
 export type NetworkConfig = {

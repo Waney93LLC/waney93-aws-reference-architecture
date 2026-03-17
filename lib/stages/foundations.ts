@@ -3,6 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { FoundationStageProps } from '../interfaces/pipeline';
 import { SharedServicesStack } from '../stacks/shared-services';
+import { BaseInfrastructureStack } from '../stacks/base-infrastructure';
 
 /**
  * FoundationsStage
@@ -20,30 +21,28 @@ export class FoundationsStage extends cdk.Stage {
    */
   constructor(scope: Construct, id: string, props: FoundationStageProps) {
     super(scope, id, props);
-     
 
-        const sharedServicesStack = new SharedServicesStack(
-          this,
-          'SharedServicesStack',
-          {
-            stage: props.stage,
-            env: props.env,
-          },
-        );
+    const sharedServicesStack = new SharedServicesStack(
+      this,
+      'SharedServicesStack',
+      {
+        stage: props.stage,
+        env: props.env,
+      },
+    );
 
-    // const infrastructureStack = new BaseInfrastructureStack(
-    //   this,
-    //   'InfrastructureStack',
-    //   {
-    //     stage: props.stage,
-    //     config: config.baseInfrastructure,
-    //     env: props.env,
-    //   },
-    // );
+    const infrastructureStack = new BaseInfrastructureStack(
+      this,
+      'InfrastructureStack',
+      {
+        stage: props.stage,
+        env: props.env,
+      },
+    );
 
-    // infrastructureStack.addDependency(
-    //   sharedServicesStack,
-    //   'Ensure SharedServicesStack is deployed before BaseInfrastructureStack.',
-    // );
+    infrastructureStack.addDependency(
+      sharedServicesStack,
+      'Ensure SharedServicesStack is deployed before BaseInfrastructureStack.',
+    );
   }
 }

@@ -102,7 +102,7 @@ export class Waney93CICDStack extends cdk.Stack {
 
     const foundationsWave = pipelineConstruct.pipeline.addWave(stage);
     const sharedStage = new FoundationsStage(
-      this,
+      pipelineConstruct.pipeline,
       `${stage}-SharedServices`,
       {
         env: env,
