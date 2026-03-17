@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { RetentionDays, LogGroup } from 'aws-cdk-lib/aws-logs';
 import { IBaseInfrastructureConfig } from '../../interfaces/base-infrastructure';
-import { ISharedServicesConfig } from '../../interfaces/shared-services';
+import { ISharedServicesConfig, SharedServicesExportNames } from '../../interfaces/shared-services';
 import {
   Stage,
   getEnvConfig,
@@ -55,7 +55,7 @@ export function getWaney93PipelineConfig(
   return {
     envConfig: env,
     baseInfrastructure: buildBaseInfrastructureConfig(scope, env, identity),
-    sharedServices: buildSharedServicesConfig(scope, stage, env),
+    sharedServices: buildSharedServicesConfig(scope, stage, env, identity),
     app: buildAppConfig(resourceConfig, env, identity),
   };
 }
@@ -157,14 +157,20 @@ function buildSharedServicesConfig(
   scope: Construct,
   stage: Stage,
   env: EnvironmentConfig,
+  identity: PipelineIdentityConfig,
 ): ISharedServicesConfig {
   return {
     ecr: buildEcrConfig(),
     oidc: buildOidcConfig(env),
     migrationOps: buildMigrationOpsConfig(scope, stage, env),
     migrationStorage: buildMigrationStorageConfig(),
+    exportNames: {
+      migrationStorageBucketArn: identity.exports.migrationStorageBucketArn,
+    },
   };
 }
+
+
 
 function buildEcrConfig(): ISharedServicesConfig['ecr'] {
   return {

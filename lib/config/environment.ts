@@ -26,20 +26,6 @@ export interface EnvironmentConfig {
   };
 }
 
-export type CfnOutputExportNames = {
-  cognito?: {
-    userPoolId?: string;
-    certificateArn?: string;
-  };
-  network?: {
-    vpcId?: string;
-    appClientSgId?: string;
-  };
-  storage?: {
-    migrationStorageBucketArn?: string;
-  };
-};
-
 const REPO = {
   owner: 'Waney93LLC',
   name: 'waney93-aws-reference-architecture',
