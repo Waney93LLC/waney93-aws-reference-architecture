@@ -22,31 +22,31 @@ export class FoundationsStage extends cdk.Stage {
    */
   constructor(scope: Construct, id: string, props: FoundationStageProps) {
     super(scope, id, props);
-    const config = getWaney93PipelineAConfig(this, props.stage);
+
 
     const sharedServicesStack = new SharedServicesStack(
       this,
       'SharedServicesStack',
       {
         stage: props.stage,
-        config: config.sharedServices,
+        config: props.config.sharedServices,
         env: props.env,
       },
     );
 
-    const infrastructureStack = new BaseInfrastructureStack(
-      this,
-      'InfrastructureStack',
-      {
-        stage: props.stage,
-        config: config.baseInfrastructure,
-        env: props.env,
-      },
-    );
+    // const infrastructureStack = new BaseInfrastructureStack(
+    //   this,
+    //   'InfrastructureStack',
+    //   {
+    //     stage: props.stage,
+    //     config: config.baseInfrastructure,
+    //     env: props.env,
+    //   },
+    // );
 
-    infrastructureStack.addDependency(
-      sharedServicesStack,
-      'Ensure SharedServicesStack is deployed before BaseInfrastructureStack.',
-    );
+    // infrastructureStack.addDependency(
+    //   sharedServicesStack,
+    //   'Ensure SharedServicesStack is deployed before BaseInfrastructureStack.',
+    // );
   }
 }

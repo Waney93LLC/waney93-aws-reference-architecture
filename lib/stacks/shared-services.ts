@@ -28,7 +28,5 @@ export class SharedServicesStack extends cdk.Stack {
       .withMigrationStorage()
       .withCognito()
       .outputs();
-
-    cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
 }

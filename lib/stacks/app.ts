@@ -32,7 +32,5 @@ export class AppStack extends cdk.Stack {
       .withHealthCheck(builders.healthCheckBuilder)
       .withAlerts(builders.alertsBuilder)
       .outputs();
-
-    cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
 }

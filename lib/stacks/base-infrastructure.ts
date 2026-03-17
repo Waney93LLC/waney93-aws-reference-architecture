@@ -39,6 +39,6 @@ export class BaseInfrastructureStack extends cdk.Stack {
       .withAuroraDB(props.config.rds)
       .outputs();
 
-    cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
+  
   }
 }

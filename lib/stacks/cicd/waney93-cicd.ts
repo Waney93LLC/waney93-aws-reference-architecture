@@ -99,12 +99,14 @@ export class Waney93CICDStack extends cdk.Stack {
     // );
 
     this.pipeline = pipelineConstruct.pipeline;
+      
 
     const foundationsWave = this.pipeline.addWave(`${stage}-Foundations`);
     const sharedStage = new FoundationsStage(
       this,
       `${stage}-SharedServices`,
       {
+        config:config,
         env: env,
         stage: props.stage,
       },
@@ -124,5 +126,6 @@ export class Waney93CICDStack extends cdk.Stack {
     //   },
     // );
     // appWave.addStage(appStage);
+      cdk.Tags.of(this).add('ManagedBy', 'waney93-aws-reference-architecture');
   }
 }
