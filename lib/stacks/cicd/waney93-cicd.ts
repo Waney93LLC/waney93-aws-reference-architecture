@@ -101,19 +101,19 @@ export class Waney93CICDStack extends cdk.Stack {
     this.pipeline = pipelineConstruct.pipeline;
       
 
-    const foundationsWave = this.pipeline.addWave(`${stage}-Foundations`);
-    const sharedStage = new FoundationsStage(
-      this.node.root,//referring to the app level since a stage cannot be a child of the cicd stack
-      `${stage}-SharedServices`,
-      {
-        env: env,
-        stage: props.stage,
-      },
-    );
+    // const foundationsWave = this.pipeline.addWave(`${stage}-Foundations`);
+    // const sharedStage = new FoundationsStage(
+    //   this.node.root,//referring to the app level since a stage cannot be a child of the cicd stack
+    //   `${stage}-SharedServices`,
+    //   {
+    //     env: env,
+    //     stage: props.stage,
+    //   },
+    // );
 
-    if (process.env.SKIP_FOUNDATIONS !== 'true') {
-      foundationsWave.addStage(sharedStage);
-    }
+    // if (process.env.SKIP_FOUNDATIONS !== 'true') {
+    //   foundationsWave.addStage(sharedStage);
+    // }
 
     // const appWave = this.pipeline.addWave(`${stage}-App`);
     // const appStage = new AppStage(
