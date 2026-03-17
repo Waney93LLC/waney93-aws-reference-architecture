@@ -4,6 +4,7 @@ import { EcsBuilder } from '../builders/ecs-builder';
 import { AppStackProps } from '../interfaces/app';
 import { createDjangoSecretsBag } from '../config/applications/django-secrets-factory';
 import { createDjangoEcsBuilders } from '../config/applications/django-ecs';
+import { getWaney93PipelineConfig } from '../config/pipelines/waney93';
 
 export class AppStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AppStackProps) {
@@ -18,12 +19,17 @@ export class AppStack extends cdk.Stack {
     );
 
     const builders = createDjangoEcsBuilders(this, config.ecsConfig);
+    const pipelineConfig = getWaney93PipelineConfig(this, props.stage);
+
+    const appClientSgId =
+      pipelineConfig.baseInfrastructure.exportNames?.appClientSgId;
+    const vpcId = pipelineConfig.baseInfrastructure.exportNames?.vpcId;
 
     new EcsBuilder(this, 'App', props)
-      .withCluster(builders.clusterBuilder)
+      .withCluster(vpcId, builders.clusterBuilder)
       .withLogGroup(builders.logGroupBuilder)
       .withRepo(config.ecrRepoName)
-      .withSecurityGroup()
+      .withSecurityGroup(appClientSgId)
       .withServiceSecrets({ secretsBag })
       .withAlbFargateService(builders.fargateBuilder)
       .withAdotSidecar(builders.adotBuilder)

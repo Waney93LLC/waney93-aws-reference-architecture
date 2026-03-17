@@ -21,11 +21,11 @@ import { IAppConfig } from '../../interfaces/app';
 // home in EnvironmentConfig live here. Bastion identity is now in getEnvConfig.
 // CDK export names are infrastructure topology decisions — they stay here.
 
-const EXPORTS = {
-  vpcId: 'pipeline-a-vpc-id',
-  appClientSgId: 'pipeline-a-app-client-sg-id',
-  migrationStorageBucketName: 'pipeline-a-migration-storage-bucket-name',
-} as const;
+// const EXPORTS = {
+//   vpcId: 'pipeline-a-vpc-id',
+//   appClientSgId: 'pipeline-a-app-client-sg-id',
+//   migrationStorageBucketName: 'pipeline-a-migration-storage-bucket-name',
+// } as const;
 
 const MIGRATION_STORAGE = {
   bucketName: 'waney93-pipeline-a-migration-storage',
@@ -73,8 +73,8 @@ function buildBaseInfrastructureConfig(
     rds: buildRdsConfig(scope),
     pipeline: env.pipeline,
     exportNames: {
-      vpcId: EXPORTS.vpcId,
-      appClientSgId: EXPORTS.appClientSgId,
+      vpcId: identity.exports.vpcId,
+      appClientSgId: identity.exports.appClientSgId,
     },
   };
 }

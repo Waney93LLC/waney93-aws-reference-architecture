@@ -38,6 +38,7 @@ export function createDjangoEcsBuilders(
   const clusterBuilder: ECS_CLUSTER_BUILDER = {
     id: 'AppCluster',
     name: serviceName,
+    
   };
 
   const logGroupBuilder: ECS_LOG_GROUP_BUILDER = {

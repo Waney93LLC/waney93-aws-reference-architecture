@@ -105,28 +105,28 @@ export function getResourceParameterConfig(
     pipelineIdentity: {
       ecrRepoName: `${base}/identity/ecr-repo-name`,
       exports: {
-        vpcId: `${base}-vpc-id`,
-        appClientSgId: `${base}-app-client-sg-id`,
-        migrationStorageBucketArn: `${base}-migration-storage-bucket-arn`,
+        vpcId: `vpc-id`,
+        appClientSgId: `app-client-sg-id`,
+        migrationStorageBucketArn: `migration-storage-bucket-arn`,
       },
     },
   };
 }
 
 export class ResourceConfigFacade {
-  static readonly ExportedValueName: CfnOutputExportNames = {
-    cognito: {
-      userPoolId: 'CognitoUserPoolId',
-      certificateArn: 'CognitoDomainCertArn',
-    },
-    network: {
-      vpcId: 'networkid',
-      appClientSgId: 'appClientSgId',
-    },
-    storage: {
-      migrationStorageBucketArn: 'MigrationStorageBucketArn',
-    },
-  };
+  // static readonly ExportedValueName: CfnOutputExportNames = {
+  //   cognito: {
+  //     userPoolId: 'CognitoUserPoolId',
+  //     certificateArn: 'CognitoDomainCertArn',
+  //   },
+  //   network: {
+  //     vpcId: 'networkid',
+  //     appClientSgId: 'appClientSgId',
+  //   },
+  //   storage: {
+  //     migrationStorageBucketArn: 'MigrationStorageBucketArn',
+  //   },
+  // };
   static readonly VersionLock = {
     AUTOMATION_SCHEMA_VERSION: '0.3',
     SSM_COMMAND_SCHEMA_VERSION: '2.2',

@@ -24,6 +24,7 @@ import {
 import { ResourceConfigFacade } from '../config/environment';
 import { AlbFargateConstruct } from '../constructs/ecs/fargate';
 import { AdotSidecarConstruct } from '../constructs/ecs/adot-sidecar';
+import { ResourceParameterConfig } from '../interfaces/parameter-resolver';
 
 /**
  * EcsBuilder
@@ -77,15 +78,18 @@ export class EcsBuilder {
    * `${idPrefix}cluster-id` and for the name will be `${idPrefix}cluster-name` as well.
    * @returns this
    */
-  public withCluster(ecsClusterBuilder?: ECS_CLUSTER_BUILDER): this {
-    const { network } = ResourceConfigFacade.ExportedValueName;
-    if (!network?.vpcId) {
+  public withCluster(
+    vpcId: string | undefined,
+    ecsClusterBuilder?: ECS_CLUSTER_BUILDER,
+  ): this {
+    if (!vpcId) {
       throw new Error('VPC ID not found in CloudFormation exports.');
     }
-    const vpcId = cdk.Fn.importValue(network.vpcId);
+
+    const importedVpcId = cdk.Fn.importValue(vpcId);
 
     const vpc = ec2.Vpc.fromLookup(this.scope, `${this.idPrefix}Vpc`, {
-      vpcId,
+      vpcId: importedVpcId,
     });
 
     this.cluster = new ecs.Cluster(
@@ -136,18 +140,16 @@ export class EcsBuilder {
    * Imported the app client security group created in the Network stack and adds it to the builder.
    * @returns this
    */
-  public withSecurityGroup(): this {
-    if (!ResourceConfigFacade.ExportedValueName.network?.appClientSgId) {
+  public withSecurityGroup(appClientSgId: string|undefined): this {
+    if (!appClientSgId) {
       throw new Error('App Client SG ID not found in CloudFormation exports.');
     }
-    const appClientSgId = cdk.Fn.importValue(
-      ResourceConfigFacade.ExportedValueName.network.appClientSgId,
-    );
+    const importedAppClientSgId = cdk.Fn.importValue(appClientSgId);
 
     const appClientSg = ec2.SecurityGroup.fromSecurityGroupId(
       this.scope,
       'ImportedAppClientSg',
-      appClientSgId,
+      importedAppClientSgId,
     );
 
     this.serviceSg = appClientSg;
