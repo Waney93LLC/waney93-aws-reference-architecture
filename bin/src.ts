@@ -15,7 +15,7 @@ new Waney93CicdObservabilityStack(app, 'Waney93CicdObservabilityStack', {
   },
 });
 
-const waney93CICDStack = new Waney93CICDStack(app, 'Waney93CICDStack', {
+new Waney93CICDStack(app, 'Waney93CICDStack', {
   stage: stage,
   description: 'CI/CD pipeline stack for Waney93 AWS Reference Architecture',
   env: {
@@ -24,21 +24,3 @@ const waney93CICDStack = new Waney93CICDStack(app, 'Waney93CICDStack', {
   },
 });
 
-const foundationsWave = waney93CICDStack.pipeline.addWave(
-  `${stage}-Foundations`,
-);
-const sharedStage = new FoundationsStage(
-  app,
-  `${stage}-SharedServices`,
-  {
-    env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
-  },
-    stage: stage,
-  },
-);
-
-if (process.env.SKIP_FOUNDATIONS !== 'true') {
-  foundationsWave.addStage(sharedStage);
-}
