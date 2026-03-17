@@ -5,6 +5,7 @@ import {
   SharedServicesStackProps,
 } from '../interfaces/shared-services';
 import { SharedServicesBuilder } from '../builders/shared-services';
+import { getWaney93PipelineConfig } from '../config/pipelines/waney93';
 
 /**
  * SharedServicesStack
@@ -16,10 +17,11 @@ import { SharedServicesBuilder } from '../builders/shared-services';
 export class SharedServicesStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SharedServicesStackProps) {
     super(scope, id, props);
+    const config = getWaney93PipelineConfig(this, props.stage);
 
     new SharedServicesBuilder(this, 'SharedServicesBuilder', {
       stage: props.stage,
-      config: props.config,
+      config: config.sharedServices,
     })
       .withEcr()
       .withCiEcrPushRole()

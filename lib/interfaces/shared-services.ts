@@ -109,7 +109,6 @@ export interface SharedServicesBuilderProps {
 // Stack props — slim, no feature flags.
 export interface SharedServicesStackProps extends cdk.StackProps {
   stage: Stage;
-  config: ISharedServicesConfig;
 }
 
 export interface EventRoute {
