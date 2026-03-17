@@ -3,6 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { FoundationStageProps } from '../interfaces/pipeline';
 import { SharedServicesStack } from '../stacks/shared-services';
+import { getWaney93PipelineConfig } from '../config/pipelines/waney93';
 
 
 /**
@@ -21,14 +22,14 @@ export class FoundationsStage extends cdk.Stage {
    */
   constructor(scope: Construct, id: string, props: FoundationStageProps) {
     super(scope, id, props);
-
+const config = getWaney93PipelineConfig(this, props.stage);
 
     const sharedServicesStack = new SharedServicesStack(
       this,
       'SharedServicesStack',
       {
         stage: props.stage,
-        config: props.config.sharedServices,
+        config: config.sharedServices,
         env: props.env,
       },
     );
