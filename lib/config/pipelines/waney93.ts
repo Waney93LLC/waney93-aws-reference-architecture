@@ -41,7 +41,7 @@ export interface Waney93PipelineAConfig extends IPipelineAConfig {
   app: IAppConfig;
 }
 
-export function getWaney93PipelineAConfig(
+export function getWaney93PipelineConfig(
   scope: Construct,
   stage: Stage,
 ): Waney93PipelineAConfig {
@@ -70,7 +70,7 @@ function buildBaseInfrastructureConfig(
     network: buildNetworkConfig(scope),
     bastion: buildBastionConfig(env),
     rds: buildRdsConfig(scope),
-    pipelineName: env.pipeline.name,
+    pipeline: env.pipeline,
     exportNames: {
       vpcId: EXPORTS.vpcId,
       appClientSgId: EXPORTS.appClientSgId,

@@ -3,8 +3,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { FoundationStageProps } from '../interfaces/pipeline';
 import { SharedServicesStack } from '../stacks/shared-services';
-import { BaseInfrastructureStack } from '../stacks/base-infrastructure';
-import { getWaney93PipelineAConfig } from '../config/pipelines/waney93';
+
 
 /**
  * FoundationsStage

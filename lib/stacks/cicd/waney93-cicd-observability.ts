@@ -7,7 +7,7 @@ import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Waney93CicdObservabilityStackProps } from '../../interfaces/shared-services';
 import { getEnvConfig } from '../../config/environment';
-import { getWaney93PipelineAConfig } from '../../config/pipelines/waney93';
+import { getWaney93PipelineConfig } from '../../config/pipelines/waney93';
 
 /**
  * Waney93CicdObservabilityStack
@@ -29,7 +29,7 @@ export class Waney93CicdObservabilityStack extends cdk.Stack {
   ) {
     super(scope, id, props);
     const { stage } = props;
-    const pipelineConfig = getWaney93PipelineAConfig(this, stage);
+    const pipelineConfig = getWaney93PipelineConfig(this, stage);
 
     const config = getEnvConfig(stage);
     if (!config) {

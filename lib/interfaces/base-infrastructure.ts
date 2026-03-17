@@ -2,7 +2,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { InterfaceVpcEndpointAwsService } from 'aws-cdk-lib/aws-ec2';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
-import { Stage } from '../config/environment';
+import { EnvironmentConfig, Stage } from '../config/environment';
 import { AuroraDbConfig, RdsBastionConfig } from './bastion';
 
 /**
@@ -48,7 +48,7 @@ export interface IBaseInfrastructureConfig {
   network: NetworkConfig;
   bastion: RdsBastionConfig;
   rds: AuroraDbConfig;
-  pipelineName: string;
+  pipeline: EnvironmentConfig['pipeline'];
   exportNames?: {
     vpcId?: string;
     appClientSgId?: string;

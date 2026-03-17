@@ -6,7 +6,7 @@ import { Waney93CICDStackProps } from './cicd-stack-props';
 import { PipelineConstruct } from '../../constructs/pipeline';
 import { FoundationsStage } from '../../stages/foundations';
 import { AppStage } from '../../stages/app';
-import { getWaney93PipelineAConfig } from '../../config/pipelines/waney93';
+import { getWaney93PipelineConfig } from '../../config/pipelines/waney93';
 import { CodePipeline } from 'aws-cdk-lib/pipelines';
 
 /**
@@ -30,7 +30,7 @@ export class Waney93CICDStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: Waney93CICDStackProps) {
     super(scope, id, props);
     const { stage, env } = props;
-    const config = getWaney93PipelineAConfig(this, stage);
+    const config = getWaney93PipelineConfig(this, stage);
 
     if (!config) {
       throw new Error(`No config found for stage: ${stage}`);
