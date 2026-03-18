@@ -4,7 +4,6 @@ import {
   BaseInfrastructureStackProps,
 } from '../interfaces/base-infrastructure';
 import { BaseInfrastructureBuilder } from '../builders/base-infrastructure';
-import { Network } from '../constructs/network';
 import { getWaney93PipelineConfig } from '../config/pipelines/waney93';
 
 /**
@@ -36,12 +35,10 @@ export class BaseInfrastructureStack extends cdk.Stack {
       network: config.baseInfrastructure.network,
       exportNames: config.baseInfrastructure.exportNames,
     })
-      .withNetwork()
-      .withRdsBastion(config.baseInfrastructure.bastion)
-      .withAppClientSecurityGroup()
-      .withAuroraDB(config.baseInfrastructure.rds)
-      .outputs();
-
-  
+      // .withNetwork()
+      // .withRdsBastion(config.baseInfrastructure.bastion)
+      // .withAppClientSecurityGroup()
+      // .withAuroraDB(config.baseInfrastructure.rds)
+      // .outputs();
   }
 }

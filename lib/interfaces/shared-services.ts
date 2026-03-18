@@ -125,7 +125,7 @@ export interface EventRouterProps {
 }
 
 export interface OpsRunbookConstructProps {
-  migrationOps: MigrationOpsConfig; // required here — caller guards before passing
+  migrationOps: MigrationOpsConfig; 
   bucketName?: string;
 }
 
