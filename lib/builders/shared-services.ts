@@ -154,11 +154,11 @@ export class SharedServicesBuilder {
         'migrationStorage config is required when migrationOps is provided.',
       );
     }
-    // if(!this.config.migrationOps.target) {
-    //   throw new Error(
-    //     'migrationOps.target config is required when migrationOps is provided.',
-    //   );
-    // }
+    if(!this.config.migrationOps.target.instance) {
+      throw new Error(
+        'migrationOps.target.instance config is required when migrationOps is provided.',
+      );
+    }
 
     this.migrationOpsRunbook = new OpsRunbookConstruct(
       this.scope,
