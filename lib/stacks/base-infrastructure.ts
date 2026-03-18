@@ -36,11 +36,11 @@ export class BaseInfrastructureStack extends cdk.Stack {
       network: config.baseInfrastructure.network,
       exportNames: config.baseInfrastructure.exportNames,
     })
-      // .withNetwork()
-      // .withRdsBastion(config.baseInfrastructure.bastion)
-      // .withAppClientSecurityGroup()
-      // .withAuroraDB(config.baseInfrastructure.rds)
-      // .outputs();
+      .withNetwork()
+      .withRdsBastion(config.baseInfrastructure.bastion)
+      .withAppClientSecurityGroup()
+      .withAuroraDB(config.baseInfrastructure.rds)
+      .outputs();
 
   
   }
