@@ -23,12 +23,12 @@ export class SharedServicesStack extends cdk.Stack {
       stage: props.stage,
       config: config.sharedServices,
     })
-      // .withEcr()
-      // .withCiEcrPushRole()
-      // .withGitHubOidc()
-      // .withMigrationBootstrap()
-      // .withMigrationStorage()
-      // .withCognito()
-      // .outputs();
+      .withEcr()
+      .withCiEcrPushRole()
+      .withGitHubOidc()
+      .withMigrationBootstrap()
+      .withMigrationStorage()
+      .withCognito()
+      .outputs();
   }
 }
