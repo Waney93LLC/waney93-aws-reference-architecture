@@ -29,16 +29,16 @@ export class BaseInfrastructureStack extends cdk.Stack {
     const config = getWaney93PipelineConfig(this, props.stage);
     
 
-    // new BaseInfrastructureBuilder(this, id, {
-    //   stage: props.stage,
-    //   pipelineName: config.baseInfrastructure.pipeline.name,
-    //   network: config.baseInfrastructure.network,
-    //   exportNames: config.baseInfrastructure.exportNames,
-    // })
-      // .withNetwork()
-      // .withRdsBastion(config.baseInfrastructure.bastion)
-      // .withAppClientSecurityGroup()
-      // .withAuroraDB(config.baseInfrastructure.rds)
-      // .outputs();
+    new BaseInfrastructureBuilder(this, id, {
+      stage: props.stage,
+      pipelineName: config.baseInfrastructure.pipeline.name,
+      network: config.baseInfrastructure.network,
+      exportNames: config.baseInfrastructure.exportNames,
+    })
+      .withNetwork()
+      .withRdsBastion(config.baseInfrastructure.bastion)
+      .withAppClientSecurityGroup()
+      .withAuroraDB(config.baseInfrastructure.rds)
+      .outputs();
   }
 }
